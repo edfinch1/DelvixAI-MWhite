@@ -16,12 +16,13 @@ export const campaign: CampaignData = {
   header: {
     wordmark: 'MARSHALL WHITE',
     productName: 'Campaign intelligence',
-    address: '102/380 Albert Street, East Melbourne VIC 3002',
-    agentName: 'Ranko Cvjeticanin',
-    agentOffice: 'Marshall White Stonnington',
-    tier: 'Premiere listing', // [REA-campaign]
-    listed: 'Listed 10 September 2025',
-    daysOnSite: '322 days on site', // [REA-campaign]
+    address: '102/380 Albert Street, East Melbourne',
+    meta: [
+      { label: 'Agent', value: 'Ranko Cvjeticanin, Stonnington' },
+      { label: 'Listing', value: 'Premiere tier' }, // [REA-campaign]
+      { label: 'Listed', value: '10 September 2025' },
+      { label: 'On site', value: '322 days' }, // [REA-campaign]
+    ],
     reportWindow: 'Latest portal report: week of 20–26 July 2026',
   },
 
@@ -29,19 +30,41 @@ export const campaign: CampaignData = {
     title: 'What the portals already show you',
     subtitle: 'Accurate, and this is where those reports stop.',
     stats: [
-      { value: '5,020', label: 'Campaign exposure' }, // [REA-weekly]
-      { value: '138', label: 'Listing views' }, // [REA-weekly]
-      { value: '8', label: 'Enquiries' }, // [REA-weekly]
-      { value: '0', label: 'Inspection actions' }, // [REA-weekly] — real zero
+      // [REA-weekly] — conversion contexts computed within the same week
+      { value: '5,020', label: 'Campaign exposure', context: 'Search, email and app reach' },
+      { value: '138', label: 'Listing views', context: '2.7% of exposure clicked through' },
+      { value: '8', label: 'Enquiries', context: '5.8% of views enquired' },
+      {
+        value: '0',
+        label: 'Inspection actions',
+        context: 'None of the 8 enquiries went further',
+        highlight: true, // the load-bearing number — real zero
+      },
     ],
     windowCaption: 'Week of 20–26 July 2026, realestate.com.au.',
   },
 
   diagnosis: {
     title: 'Campaign assessment',
+    kicker: 'Day 322 · Read across five systems',
     paragraphs: [
-      'This listing gets found and studied, and then nothing happens. Across the campaign, buyers have opened the photos 2,942 times and the floorplan 266 times, yet only two have saved the listing. Last week the pattern held: 8 enquiries, and not one inspection action — nobody added it to a plan, nobody registered to inspect.',
-      'After 322 days on a Premiere listing, that reads as a price-expectation problem. Buyers reach the listing in volume, look closely, decide it isn’t worth an inspection, and move on.',
+      [
+        { text: 'This listing gets found and studied, and then nothing happens. ' },
+        {
+          text: 'Across the campaign, buyers have opened the photos 2,942 times — and saved the listing twice.',
+          strong: true,
+        },
+        {
+          text: ' Last week the pattern held: 8 enquiries, and not one inspection action. Nobody added it to a plan, nobody registered to inspect.',
+        },
+      ],
+      [
+        { text: 'After 322 days on a Premiere listing, that reads as a ' },
+        { text: 'price-expectation problem', strong: true },
+        {
+          text: ': buyers reach the listing in volume, look closely, decide it isn’t worth an inspection, and move on.',
+        },
+      ],
     ],
     systems:
       'No single system shows this. The portal report holds the traffic and the zero inspection intent, but the reason sits elsewhere: buyer feedback logged in Box+Dice names price as the dominant objection, and Red HQ shows no video or 3D tour has been purchased to shift the first impression. The pattern only becomes visible when those records are read together.',
@@ -55,6 +78,7 @@ export const campaign: CampaignData = {
       'One number for the vendor conversation, decomposed into the five inputs that separate above-reserve campaigns from the rest.',
     score: '39',
     outOf: '/ 100',
+    verdict: 'Well below the above-reserve band',
     summary:
       'Traffic is doing its job. The score is dragged down by inspection intent — zero actions last week — and a database that has stopped responding.',
     subScores: [
@@ -128,21 +152,25 @@ export const campaign: CampaignData = {
       {
         label: 'Price expectation',
         pct: 62,
+        countNote: '29 of 47 notes',
         note: 'The most cited objection across enquiry and inspection notes.',
       },
       {
         label: 'Positive on location',
         pct: 43,
+        countNote: '20 of 47 notes',
         note: 'The East Melbourne position is a consistent drawcard.',
       },
       {
         label: 'Layout and size concerns',
         pct: 17,
+        countNote: '8 of 47 notes',
         note: 'Raised occasionally; not the primary blocker.',
       },
       {
         label: 'Timing and finance',
         pct: 11,
+        countNote: '5 of 47 notes',
         note: 'A small number of buyers are waiting on approvals.',
       },
     ],

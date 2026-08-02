@@ -49,6 +49,12 @@ export const MAX_WIDTH = 1120;
 export const RADIUS = 4; // maximum
 
 export const T: Record<string, CSSProperties> = {
+  display: {
+    fontSize: 42,
+    fontWeight: 550,
+    letterSpacing: '-0.025em',
+    lineHeight: 1.12,
+  },
   pageTitle: {
     fontSize: 28,
     fontWeight: 500,
@@ -56,10 +62,16 @@ export const T: Record<string, CSSProperties> = {
     lineHeight: 1.25,
   },
   sectionHeading: {
-    fontSize: 19,
-    fontWeight: 500,
+    fontSize: 24,
+    fontWeight: 550,
+    letterSpacing: '-0.02em',
+    lineHeight: 1.25,
+  },
+  pull: {
+    fontSize: 26,
+    fontWeight: 450,
     letterSpacing: '-0.015em',
-    lineHeight: 1.3,
+    lineHeight: 1.42,
   },
   body: {
     fontSize: 15,
@@ -72,10 +84,17 @@ export const T: Record<string, CSSProperties> = {
     lineHeight: 1.5,
   },
   statLarge: {
-    fontSize: 34,
-    fontWeight: 500,
-    letterSpacing: '-0.02em',
-    lineHeight: 1.1,
+    fontSize: 48,
+    fontWeight: 550,
+    letterSpacing: '-0.025em',
+    lineHeight: 1.05,
+    fontVariantNumeric: 'tabular-nums',
+  },
+  scoreLarge: {
+    fontSize: 84,
+    fontWeight: 550,
+    letterSpacing: '-0.03em',
+    lineHeight: 1,
     fontVariantNumeric: 'tabular-nums',
   },
   dataInline: {
@@ -88,6 +107,12 @@ export const T: Record<string, CSSProperties> = {
     fontWeight: 500,
     letterSpacing: '0.01em',
     lineHeight: 1.4,
+  },
+  sectionNumber: {
+    fontSize: 13,
+    fontWeight: 500,
+    letterSpacing: '0.02em',
+    fontVariantNumeric: 'tabular-nums',
   },
 };
 

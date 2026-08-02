@@ -17,6 +17,57 @@ export default function App() {
   const { isMobile } = useViewport();
   const gutter = isMobile ? S.l : S.xl;
 
+  const sections: Array<{
+    title: string;
+    subtitle?: string;
+    content: JSX.Element;
+  }> = [
+    {
+      title: campaign.portal.title,
+      subtitle: campaign.portal.subtitle,
+      content: <StatRow data={campaign.portal} />,
+    },
+    {
+      title: campaign.diagnosis.title,
+      content: <Diagnosis data={campaign.diagnosis} />,
+    },
+    {
+      title: campaign.health.title,
+      subtitle: campaign.health.subtitle,
+      content: <HealthScore data={campaign.health} />,
+    },
+    {
+      title: campaign.benchmark.title,
+      subtitle: campaign.benchmark.subtitle,
+      content: <BenchmarkChart data={campaign.benchmark} />,
+    },
+    {
+      title: campaign.feedback.title,
+      subtitle: campaign.feedback.subtitle,
+      content: <BuyerFeedback data={campaign.feedback} />,
+    },
+    {
+      title: campaign.spend.title,
+      subtitle: campaign.spend.subtitle,
+      content: <SpendGaps data={campaign.spend} />,
+    },
+    {
+      title: campaign.recommendations.title,
+      subtitle: campaign.recommendations.subtitle,
+      content: <Recommendations data={campaign.recommendations} />,
+    },
+    {
+      title: campaign.actions.title,
+      subtitle: campaign.actions.subtitle,
+      content: <ActionList data={campaign.actions} />,
+    },
+    {
+      title: campaign.sources.title,
+      subtitle: campaign.sources.subtitle,
+      content: <Sources data={campaign.sources} />,
+    },
+  ];
+
   return (
     <div style={{ background: C.paper, minHeight: '100vh' }}>
       <Header data={campaign.header} />
@@ -28,44 +79,16 @@ export default function App() {
           padding: `${S.xxl}px ${gutter}px 0`,
         }}
       >
-        <Section title={campaign.portal.title} subtitle={campaign.portal.subtitle}>
-          <StatRow data={campaign.portal} />
-        </Section>
-
-        <Section title={campaign.diagnosis.title}>
-          <Diagnosis data={campaign.diagnosis} />
-        </Section>
-
-        <Section title={campaign.health.title} subtitle={campaign.health.subtitle}>
-          <HealthScore data={campaign.health} />
-        </Section>
-
-        <Section title={campaign.benchmark.title} subtitle={campaign.benchmark.subtitle}>
-          <BenchmarkChart data={campaign.benchmark} />
-        </Section>
-
-        <Section title={campaign.feedback.title} subtitle={campaign.feedback.subtitle}>
-          <BuyerFeedback data={campaign.feedback} />
-        </Section>
-
-        <Section title={campaign.spend.title} subtitle={campaign.spend.subtitle}>
-          <SpendGaps data={campaign.spend} />
-        </Section>
-
-        <Section
-          title={campaign.recommendations.title}
-          subtitle={campaign.recommendations.subtitle}
-        >
-          <Recommendations data={campaign.recommendations} />
-        </Section>
-
-        <Section title={campaign.actions.title} subtitle={campaign.actions.subtitle}>
-          <ActionList data={campaign.actions} />
-        </Section>
-
-        <Section title={campaign.sources.title} subtitle={campaign.sources.subtitle}>
-          <Sources data={campaign.sources} />
-        </Section>
+        {sections.map((s, i) => (
+          <Section
+            key={s.title}
+            number={String(i + 1).padStart(2, '0')}
+            title={s.title}
+            subtitle={s.subtitle}
+          >
+            {s.content}
+          </Section>
+        ))}
       </main>
 
       <footer

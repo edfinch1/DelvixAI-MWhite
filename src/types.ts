@@ -1,20 +1,23 @@
 export type Tone = 'good' | 'warn' | 'bad' | 'neutral';
 
+export interface HeaderMeta {
+  label: string;
+  value: string;
+}
+
 export interface PropertyHeader {
   wordmark: string;
   productName: string;
   address: string;
-  agentName: string;
-  agentOffice: string;
-  tier: string;
-  listed: string;
-  daysOnSite: string;
+  meta: HeaderMeta[];
   reportWindow: string;
 }
 
 export interface Stat {
   value: string;
   label: string;
+  context: string;
+  highlight?: boolean;
 }
 
 export interface PortalStats {
@@ -24,9 +27,15 @@ export interface PortalStats {
   windowCaption: string;
 }
 
+export interface DiagnosisSegment {
+  text: string;
+  strong?: boolean;
+}
+
 export interface Diagnosis {
   title: string;
-  paragraphs: string[];
+  kicker: string;
+  paragraphs: DiagnosisSegment[][];
   systems: string;
   caption: string;
 }
@@ -42,6 +51,7 @@ export interface HealthScore {
   subtitle: string;
   score: string;
   outOf: string;
+  verdict: string;
   summary: string;
   subScores: SubScore[];
   caption: string;
@@ -67,6 +77,7 @@ export interface BenchmarkBlock {
 export interface FeedbackTheme {
   label: string;
   pct: number;
+  countNote: string;
   note: string;
 }
 

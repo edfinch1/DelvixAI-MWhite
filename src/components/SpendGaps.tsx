@@ -6,9 +6,17 @@ interface Props {
   data: SpendBlock;
 }
 
-function Column({ heading, items }: { heading: string; items: SpendItem[] }) {
+function Column({
+  heading,
+  items,
+  alt,
+}: {
+  heading: string;
+  items: SpendItem[];
+  alt?: boolean;
+}) {
   return (
-    <div style={{ padding: S.l, flex: 1, minWidth: 0 }}>
+    <div style={{ padding: S.l, flex: 1, minWidth: 0, background: alt ? C.paperAlt : C.paper }}>
       <h3 style={{ ...T.label, color: C.textMuted }}>{heading}</h3>
       {items.map((item) => (
         <div
@@ -36,6 +44,7 @@ export default function SpendGaps({ data }: Props) {
           flexDirection: isMobile ? 'column' : 'row',
           border: hairline,
           borderRadius: RADIUS,
+          overflow: 'hidden',
         }}
       >
         <Column heading={data.purchasedHeading} items={data.purchased} />
@@ -45,7 +54,7 @@ export default function SpendGaps({ data }: Props) {
             borderTop: isMobile ? hairline : 'none',
           }}
         />
-        <Column heading={data.notPurchasedHeading} items={data.notPurchased} />
+        <Column heading={data.notPurchasedHeading} items={data.notPurchased} alt />
       </div>
       <p style={{ ...T.caption, color: C.textFaint, marginTop: S.s, maxWidth: 720 }}>
         {data.caption}

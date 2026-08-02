@@ -59,8 +59,10 @@ export default function Recommendations({ data }: Props) {
                 flexWrap: 'wrap',
               }}
             >
-              <h3 style={{ ...T.body, fontWeight: 500, color: C.text }}>{rec.action}</h3>
-              <span style={{ ...T.caption, color: C.textMuted, whiteSpace: 'nowrap' }}>
+              <h3 style={{ fontSize: 17, fontWeight: 550, letterSpacing: '-0.01em', color: C.text }}>
+                {rec.action}
+              </h3>
+              <span style={{ ...T.dataInline, color: C.text, whiteSpace: 'nowrap' }}>
                 {rec.cost}
               </span>
             </div>

@@ -15,29 +15,38 @@ export default function Diagnosis({ data }: Props) {
         background: C.ink,
         color: C.onInk,
         borderRadius: RADIUS,
-        padding: isMobile ? S.l : S.xl,
+        padding: isMobile ? S.l : S.xxl,
       }}
     >
-      {data.paragraphs.map((p, i) => (
-        <p
-          key={i}
-          style={{
-            fontSize: isMobile ? 17 : 19,
-            fontWeight: 400,
-            lineHeight: 1.55,
-            letterSpacing: '-0.005em',
-            color: C.onInk,
-            marginTop: i === 0 ? 0 : S.base,
-            maxWidth: 760,
-          }}
-        >
-          {p}
-        </p>
-      ))}
+      <p style={{ ...T.label, color: C.onInkMuted }}>{data.kicker}</p>
+      <div style={{ marginTop: isMobile ? S.base : S.l }}>
+        {data.paragraphs.map((para, i) => (
+          <p
+            key={i}
+            style={{
+              ...T.pull,
+              fontSize: isMobile ? 19 : 26,
+              color: 'rgba(255,255,255,0.84)',
+              marginTop: i === 0 ? 0 : S.l,
+              maxWidth: 780,
+            }}
+          >
+            {para.map((seg, j) =>
+              seg.strong ? (
+                <strong key={j} style={{ fontWeight: 600, color: C.onInk }}>
+                  {seg.text}
+                </strong>
+              ) : (
+                <span key={j}>{seg.text}</span>
+              ),
+            )}
+          </p>
+        ))}
+      </div>
       <div
         style={{
           borderTop: `1px solid ${C.inkSoft}`,
-          marginTop: S.l,
+          marginTop: isMobile ? S.l : S.xl,
           paddingTop: S.l,
         }}
       >

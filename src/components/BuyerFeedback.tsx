@@ -19,8 +19,15 @@ export default function BuyerFeedback({ data }: Props) {
               marginBottom: S.xs,
             }}
           >
-            <span style={{ ...T.body, color: C.text }}>{theme.label}</span>
-            <span style={{ ...T.dataInline, color: C.text }}>{theme.pct}%</span>
+            <span style={{ ...T.body, fontWeight: 500, color: C.text }}>
+              {theme.label}
+              <span style={{ ...T.caption, fontWeight: 400, color: C.textFaint, marginLeft: S.s }}>
+                {theme.countNote}
+              </span>
+            </span>
+            <span style={{ ...T.dataInline, fontSize: 17, color: C.text }}>
+              {theme.pct}%
+            </span>
           </div>
           <svg width="100%" height="10" style={{ display: 'block' }}>
             <rect x="0" y="0" width="100%" height="10" fill={C.gridline} />

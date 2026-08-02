@@ -15,28 +15,35 @@ export default function HealthScore({ data }: Props) {
         border: hairline,
         borderRadius: RADIUS,
         display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : '280px 1fr',
+        gridTemplateColumns: isMobile ? '1fr' : '320px 1fr',
       }}
     >
       <div
         style={{
-          padding: S.l,
+          padding: isMobile ? S.l : S.xl,
           borderRight: isMobile ? 'none' : hairline,
           borderBottom: isMobile ? hairline : 'none',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: S.s }}>
-          <span style={{ ...T.statLarge, fontSize: 48, color: C.text }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: S.m }}>
+          <span
+            style={{ ...T.scoreLarge, fontSize: isMobile ? 64 : 84, color: C.text }}
+          >
             {data.score}
           </span>
           <span style={{ ...T.body, color: C.textFaint }}>{data.outOf}</span>
         </div>
-        <p style={{ ...T.body, color: C.textMuted, marginTop: S.m }}>{data.summary}</p>
+        <p style={{ ...T.body, fontWeight: 500, color: C.text, marginTop: S.m }}>
+          {data.verdict}
+        </p>
+        <p style={{ ...T.body, color: C.textMuted, marginTop: S.s }}>{data.summary}</p>
       </div>
 
-      <div style={{ padding: S.l }}>
+      <div style={{ padding: isMobile ? S.l : S.xl }}>
         {data.subScores.map((sub, i) => (
-          <div key={sub.label} style={{ marginTop: i === 0 ? 0 : S.base }}>
+          <div key={sub.label} style={{ marginTop: i === 0 ? 0 : S.base + S.xs }}>
             <div
               style={{
                 display: 'flex',
@@ -45,7 +52,9 @@ export default function HealthScore({ data }: Props) {
                 marginBottom: S.xs,
               }}
             >
-              <span style={{ ...T.caption, color: C.text }}>{sub.label}</span>
+              <span style={{ ...T.body, fontWeight: 500, color: C.text }}>
+                {sub.label}
+              </span>
               <span style={{ ...T.dataInline, fontSize: 13, color: C.textMuted }}>
                 {sub.score} · {sub.weightNote}
               </span>
@@ -56,7 +65,7 @@ export default function HealthScore({ data }: Props) {
             </svg>
           </div>
         ))}
-        <p style={{ ...T.caption, color: C.textFaint, marginTop: S.base }}>
+        <p style={{ ...T.caption, color: C.textFaint, marginTop: S.l }}>
           {data.caption}
         </p>
       </div>

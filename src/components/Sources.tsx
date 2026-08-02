@@ -66,7 +66,7 @@ export default function Sources({ data }: Props) {
       </thead>
       <tbody>
         {data.rows.map((row, i) => (
-          <tr key={row.source}>
+          <tr key={row.source} style={{ background: i % 2 === 1 ? C.paperAlt : C.paper }}>
             <td
               style={{
                 ...T.body,
