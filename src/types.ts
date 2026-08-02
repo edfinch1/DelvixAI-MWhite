@@ -6,8 +6,6 @@ export interface HeaderMeta {
 }
 
 export interface PropertyHeader {
-  wordmark: string;
-  productName: string;
   address: string;
   meta: HeaderMeta[];
   reportWindow: string;
@@ -155,6 +153,9 @@ export interface NavSection {
 }
 
 export interface AppChrome {
+  wordmark: string;
+  wordmarkShort: string;
+  productName: string;
   portfolioLabel: string;
   backLabel: string;
   navSections: NavSection[];
@@ -182,9 +183,8 @@ export interface PortfolioBlock {
   caption: string;
 }
 
-export interface CampaignData {
-  app: AppChrome;
-  portfolio: PortfolioBlock;
+export interface CampaignRecord {
+  id: string;
   header: PropertyHeader;
   portal: PortalStats;
   diagnosis: Diagnosis;
@@ -194,6 +194,12 @@ export interface CampaignData {
   spend: SpendBlock;
   recommendations: RecommendationsBlock;
   actions: ActionsBlock;
+}
+
+export interface FixtureData {
+  app: AppChrome;
+  portfolio: PortfolioBlock;
+  campaigns: Record<string, CampaignRecord>;
   sources: SourcesBlock;
   footer: string;
 }

@@ -56,18 +56,17 @@ export default function Portfolio({ data, onOpen }: Props) {
         </p>
         <div style={{ marginTop: S.l }}>
           {data.rows.map((row) => {
-            const clickable = !!row.isWorkedExample;
             return (
               <div
                 key={row.id}
-                onClick={clickable ? () => onOpen(row.id) : undefined}
+                onClick={() => onOpen(row.id)}
                 style={{
                   border: hairline,
                   borderRadius: RADIUS,
                   padding: S.base,
                   marginBottom: S.m,
-                  cursor: clickable ? 'pointer' : 'default',
-                  background: clickable ? C.paper : C.paperAlt,
+                  cursor: 'pointer',
+                  background: C.paper,
                 }}
               >
                 <div
@@ -81,7 +80,7 @@ export default function Portfolio({ data, onOpen }: Props) {
                   <span style={{ ...T.body, fontWeight: 550, color: C.text }}>
                     {row.address}
                   </span>
-                  {clickable && <ChevronRight size={16} color={C.textMuted} />}
+                  <ChevronRight size={16} color={C.textMuted} />
                 </div>
                 <div style={{ ...T.caption, color: C.textMuted, marginTop: S.xs }}>
                   {row.daysOnSite} days on site · {row.enquiriesWeek} enquiries this week
@@ -145,13 +144,12 @@ export default function Portfolio({ data, onOpen }: Props) {
         </thead>
         <tbody>
           {data.rows.map((row, i) => {
-            const clickable = !!row.isWorkedExample;
             return (
               <tr
                 key={row.id}
-                onClick={clickable ? () => onOpen(row.id) : undefined}
+                onClick={() => onOpen(row.id)}
                 style={{
-                  cursor: clickable ? 'pointer' : 'default',
+                  cursor: 'pointer',
                   background: C.paper,
                 }}
               >
@@ -218,7 +216,7 @@ export default function Portfolio({ data, onOpen }: Props) {
                     width: 32,
                   }}
                 >
-                  {clickable && <ChevronRight size={16} color={C.textMuted} />}
+                  <ChevronRight size={16} color={C.textMuted} />
                 </td>
               </tr>
             );

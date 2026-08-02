@@ -43,10 +43,10 @@ export default function Sidebar({
         }}
       >
         <div style={{ fontSize: 15, fontWeight: 650, letterSpacing: '0.12em' }}>
-          MARSHALL WHITE
+          {chrome.wordmark}
         </div>
         <div style={{ ...T.caption, color: C.onInkMuted, marginTop: 2 }}>
-          Campaign intelligence
+          {chrome.productName}
         </div>
       </div>
 

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { campaign } from './data/campaign';
+import { fixture } from './data/campaign';
+import type { CampaignRecord } from './types';
 import { C, S, T, hairline } from './tokens';
 import { useViewport } from './hooks/useViewport';
+import Picker from './components/Picker';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
-import Portfolio from './components/Portfolio';
 import Section from './components/Section';
 import StatRow from './components/StatRow';
 import Diagnosis from './components/Diagnosis';
@@ -16,9 +17,7 @@ import Recommendations from './components/Recommendations';
 import ActionList from './components/ActionList';
 import Sources from './components/Sources';
 
-type Route = 'portfolio' | 'campaign';
-
-function MetaStrip() {
+function MetaStrip({ record }: { record: CampaignRecord }) {
   const { isMobile } = useViewport();
   return (
     <div
@@ -30,7 +29,7 @@ function MetaStrip() {
         marginBottom: S.xl,
       }}
     >
-      {campaign.header.meta.map((m, i) => (
+      {record.header.meta.map((m, i) => (
         <div
           key={m.label}
           style={{
@@ -55,62 +54,62 @@ function MetaStrip() {
   );
 }
 
-function CampaignScreen({ section }: { section: string }) {
+function CampaignScreen({ record, section }: { record: CampaignRecord; section: string }) {
   switch (section) {
     case 'overview':
       return (
         <>
           <h1 style={{ ...T.sectionHeading, fontSize: 28, color: C.text, marginBottom: S.l }}>
-            {campaign.header.address}
+            {record.header.address}
           </h1>
-          <MetaStrip />
-          <Section title={campaign.portal.title} subtitle={campaign.portal.subtitle}>
-            <StatRow data={campaign.portal} />
+          <MetaStrip record={record} />
+          <Section title={record.portal.title} subtitle={record.portal.subtitle}>
+            <StatRow data={record.portal} />
           </Section>
-          <Section title={campaign.diagnosis.title}>
-            <Diagnosis data={campaign.diagnosis} />
+          <Section title={record.diagnosis.title}>
+            <Diagnosis data={record.diagnosis} />
           </Section>
-          <Section title={campaign.health.title} subtitle={campaign.health.subtitle}>
-            <HealthScore data={campaign.health} />
+          <Section title={record.health.title} subtitle={record.health.subtitle}>
+            <HealthScore data={record.health} />
           </Section>
         </>
       );
     case 'benchmarks':
       return (
-        <Section title={campaign.benchmark.title} subtitle={campaign.benchmark.subtitle}>
-          <BenchmarkChart data={campaign.benchmark} />
+        <Section title={record.benchmark.title} subtitle={record.benchmark.subtitle}>
+          <BenchmarkChart data={record.benchmark} />
         </Section>
       );
     case 'feedback':
       return (
-        <Section title={campaign.feedback.title} subtitle={campaign.feedback.subtitle}>
-          <BuyerFeedback data={campaign.feedback} />
+        <Section title={record.feedback.title} subtitle={record.feedback.subtitle}>
+          <BuyerFeedback data={record.feedback} />
         </Section>
       );
     case 'spend':
       return (
         <>
-          <Section title={campaign.spend.title} subtitle={campaign.spend.subtitle}>
-            <SpendGaps data={campaign.spend} />
+          <Section title={record.spend.title} subtitle={record.spend.subtitle}>
+            <SpendGaps data={record.spend} />
           </Section>
           <Section
-            title={campaign.recommendations.title}
-            subtitle={campaign.recommendations.subtitle}
+            title={record.recommendations.title}
+            subtitle={record.recommendations.subtitle}
           >
-            <Recommendations data={campaign.recommendations} />
+            <Recommendations data={record.recommendations} />
           </Section>
         </>
       );
     case 'actions':
       return (
-        <Section title={campaign.actions.title} subtitle={campaign.actions.subtitle}>
-          <ActionList data={campaign.actions} />
+        <Section title={record.actions.title} subtitle={record.actions.subtitle}>
+          <ActionList data={record.actions} />
         </Section>
       );
     case 'connections':
       return (
-        <Section title={campaign.sources.title} subtitle={campaign.sources.subtitle}>
-          <Sources data={campaign.sources} />
+        <Section title={fixture.sources.title} subtitle={fixture.sources.subtitle}>
+          <Sources data={fixture.sources} />
         </Section>
       );
     default:
@@ -120,15 +119,17 @@ function CampaignScreen({ section }: { section: string }) {
 
 export default function App() {
   const { isNarrow, isMobile } = useViewport();
-  const [route, setRoute] = useState<Route>('portfolio');
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [section, setSection] = useState('overview');
 
-  const goPortfolio = () => {
-    setRoute('portfolio');
+  const record = activeId ? fixture.campaigns[activeId] : null;
+
+  const goPicker = () => {
+    setActiveId(null);
     window.scrollTo(0, 0);
   };
-  const openCampaign = () => {
-    setRoute('campaign');
+  const openCampaign = (id: string) => {
+    setActiveId(id);
     setSection('overview');
     window.scrollTo(0, 0);
   };
@@ -137,28 +138,39 @@ export default function App() {
     window.scrollTo(0, 0);
   };
 
+  if (!record) {
+    return (
+      <Picker
+        chrome={fixture.app}
+        portfolio={fixture.portfolio}
+        footer={fixture.footer}
+        onOpen={openCampaign}
+      />
+    );
+  }
+
   return (
     <div style={{ display: 'flex', background: C.paper, minHeight: '100vh' }}>
       {!isNarrow && (
         <Sidebar
-          chrome={campaign.app}
-          route={route}
+          chrome={fixture.app}
+          route="campaign"
           section={section}
-          campaignAddress={campaign.header.address}
-          footer={campaign.footer}
-          onPortfolio={goPortfolio}
+          campaignAddress={record.header.address}
+          footer={fixture.footer}
+          onPortfolio={goPicker}
           onSection={goSection}
         />
       )}
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <TopBar
-          chrome={campaign.app}
-          route={route}
+          chrome={fixture.app}
+          route="campaign"
           section={section}
-          campaignAddress={campaign.header.address}
-          reportWindow={campaign.header.reportWindow}
-          onPortfolio={goPortfolio}
+          campaignAddress={record.header.address}
+          reportWindow={record.header.reportWindow}
+          onPortfolio={goPicker}
           onSection={goSection}
         />
 
@@ -168,11 +180,7 @@ export default function App() {
             padding: `${isMobile ? S.l : S.xl}px ${isMobile ? S.base : S.xl}px ${S.xxl}px`,
           }}
         >
-          {route === 'portfolio' ? (
-            <Portfolio data={campaign.portfolio} onOpen={openCampaign} />
-          ) : (
-            <CampaignScreen section={section} />
-          )}
+          <CampaignScreen record={record} section={section} />
         </main>
       </div>
     </div>

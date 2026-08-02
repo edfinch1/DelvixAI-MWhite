@@ -96,7 +96,7 @@ export default function TopBar({
               marginRight: S.s,
             }}
           >
-            MW
+            {chrome.wordmarkShort}
           </span>
         )}
         {route === 'campaign' ? (
