@@ -13,6 +13,92 @@ import type { CampaignData } from '../types';
 // are never round.
 
 export const campaign: CampaignData = {
+  app: {
+    portfolioLabel: 'Campaigns',
+    backLabel: 'All campaigns',
+    navSections: [
+      { id: 'overview', label: 'Overview' },
+      { id: 'benchmarks', label: 'Benchmarks' },
+      { id: 'feedback', label: 'Buyer feedback' },
+      { id: 'spend', label: 'Spend and levers' },
+      { id: 'actions', label: 'Actions' },
+      { id: 'connections', label: 'Data connections' },
+    ],
+    agentLine: 'Ranko Cvjeticanin',
+    officeLine: 'Marshall White Stonnington',
+  },
+
+  portfolio: {
+    title: 'Campaigns',
+    subtitle: 'Every live listing, read across the five systems, ranked by what needs attention.',
+    columns: ['Campaign', 'Days on site', 'Enquiries this week', 'Health', 'Status'],
+    rows: [
+      {
+        id: 'albert',
+        address: '102/380 Albert Street, East Melbourne',
+        daysOnSite: '322',
+        enquiriesWeek: '8', // [REA-weekly]
+        healthDisplay: '39',
+        health: 39,
+        status: 'Needs review — zero inspection actions last week',
+        tone: 'bad',
+        isWorkedExample: true,
+      },
+      {
+        id: 'moorhouse',
+        address: '7 Moorhouse Street, Armadale',
+        daysOnSite: '47',
+        enquiriesWeek: '9',
+        healthDisplay: '57',
+        health: 57,
+        status: 'Watch — follow-up slipping past 24 hours',
+        tone: 'warn',
+      },
+      {
+        id: 'mathoura',
+        address: '4/27 Mathoura Road, Toorak',
+        daysOnSite: '61',
+        enquiriesWeek: '11',
+        healthDisplay: '64',
+        health: 64,
+        status: 'Watch — enquiry conversion below cohort',
+        tone: 'warn',
+      },
+      {
+        id: 'huntingtower',
+        address: '12 Huntingtower Road, Armadale',
+        daysOnSite: '34',
+        enquiriesWeek: '14',
+        healthDisplay: '78',
+        health: 78,
+        status: 'On track',
+        tone: 'good',
+      },
+      {
+        id: 'williams',
+        address: '3/158 Williams Road, Prahran',
+        daysOnSite: '18',
+        enquiriesWeek: '6',
+        healthDisplay: '82',
+        health: 82,
+        status: 'On track',
+        tone: 'good',
+      },
+      {
+        id: 'daly',
+        address: '216/8 Daly Street, South Yarra',
+        daysOnSite: '96',
+        enquiriesWeek: '4',
+        healthDisplay: '71',
+        health: 71,
+        status: 'On track',
+        tone: 'good',
+      },
+    ],
+    caption:
+      '102/380 Albert Street is the worked example, built on its real REA report. The other campaigns are illustrative — they show how a full portfolio reads once the systems are connected.',
+  },
+
   header: {
     wordmark: 'MARSHALL WHITE',
     productName: 'Campaign intelligence',

@@ -149,7 +149,42 @@ export interface SourcesBlock {
   rows: SourceRow[];
 }
 
+export interface NavSection {
+  id: string;
+  label: string;
+}
+
+export interface AppChrome {
+  portfolioLabel: string;
+  backLabel: string;
+  navSections: NavSection[];
+  agentLine: string;
+  officeLine: string;
+}
+
+export interface PortfolioRow {
+  id: string;
+  address: string;
+  daysOnSite: string;
+  enquiriesWeek: string;
+  healthDisplay: string;
+  health: number;
+  status: string;
+  tone: Tone;
+  isWorkedExample?: boolean;
+}
+
+export interface PortfolioBlock {
+  title: string;
+  subtitle: string;
+  columns: string[];
+  rows: PortfolioRow[];
+  caption: string;
+}
+
 export interface CampaignData {
+  app: AppChrome;
+  portfolio: PortfolioBlock;
   header: PropertyHeader;
   portal: PortalStats;
   diagnosis: Diagnosis;

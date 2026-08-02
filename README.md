@@ -1,9 +1,14 @@
 # Marshall White Campaign Intelligence — demo
 
-A single-page, fully static demonstration built for the Tuesday Marshall White
-meeting. One worked example property: **102/380 Albert Street, East Melbourne**.
-No backend, no auth, no API calls — every figure and sentence lives in
-`src/data/campaign.ts`.
+A fully static demonstration built for the Tuesday Marshall White meeting,
+presented as the operating system an agent would live in: a portfolio of
+campaigns, one campaign opened as a workspace (Overview, Benchmarks, Buyer
+feedback, Spend and levers, Actions, Data connections). No backend, no auth,
+no API calls — every figure and sentence lives in `src/data/campaign.ts`.
+
+The worked example is **102/380 Albert Street, East Melbourne**, built on its
+real REA report. The other portfolio rows are illustrative and labelled as
+such on screen — only the worked example opens.
 
 ## What is real
 
