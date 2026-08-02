@@ -1,0 +1,26 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter Variable', 'Inter', -apple-system, 'Segoe UI', Helvetica,
+    Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  background: #ffffff;
+  color: #0b1b2b;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
