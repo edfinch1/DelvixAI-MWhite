@@ -185,6 +185,8 @@ const INSPECTION_ACTION_BENCHMARK = {
   stageSentence: 'A weekly rate, not a running total, so this benchmark holds at every milestone.',
 };
 
+const LADDER_LABEL = 'Successful campaigns';
+
 const STAGE_HEADING =
   'Read against where above-reserve campaigns sit on the same day, not only against the finished campaign. The solid rule on each bar is today’s expectation, the dashed rule is the full-campaign median, and the ladder below shows the milestones either side.';
 
@@ -326,6 +328,7 @@ const albert: CampaignRecord = {
     cohortNote:
       'Drawn from 2,800 analysed Marshall White apartment campaigns. Benchmarks are medians for comparable listings that sold above reserve, matched on suburb, price band and product tier, with the milestone figures taken at the same day of those campaigns. Campaign-side values are modelled pending Box+Dice access, except inspection actions, which are from the REA report.',
     stageHeading: STAGE_HEADING,
+    ladderLabel: LADDER_LABEL,
     metrics: [
       cumulativeMetric({
         label: 'Qualified enquiries',
@@ -630,6 +633,7 @@ const moorhouse: CampaignRecord = {
     cohortNote:
       'Illustrative sample. In the connected product each milestone is the above-reserve median at the same day of those campaigns, matched on suburb, price band and product tier.',
     stageHeading: STAGE_HEADING,
+    ladderLabel: LADDER_LABEL,
     metrics: [
       cumulativeMetric({
         label: 'Qualified enquiries',
@@ -900,6 +904,7 @@ const mathoura: CampaignRecord = {
     cohortNote:
       'Illustrative sample. In the connected product each milestone is the above-reserve median at the same day of those campaigns, matched on suburb, price band and product tier.',
     stageHeading: STAGE_HEADING,
+    ladderLabel: LADDER_LABEL,
     metrics: [
       cumulativeMetric({
         label: 'Qualified enquiries',
@@ -1169,6 +1174,7 @@ const huntingtower: CampaignRecord = {
     cohortNote:
       'Illustrative sample. In the connected product each milestone is the above-reserve median at the same day of those campaigns, matched on suburb, price band and product tier.',
     stageHeading: STAGE_HEADING,
+    ladderLabel: LADDER_LABEL,
     metrics: [
       cumulativeMetric({
         label: 'Qualified enquiries',
@@ -1431,6 +1437,7 @@ const williams: CampaignRecord = {
     cohortNote:
       'Illustrative sample. At day 18 the full-campaign median is the wrong test, so each metric is read against the day-18 milestone of the same cohort, with the later milestones shown so the trajectory is visible.',
     stageHeading: STAGE_HEADING,
+    ladderLabel: LADDER_LABEL,
     metrics: [
       cumulativeMetric({
         label: 'Qualified enquiries',
@@ -1678,6 +1685,7 @@ const daly: CampaignRecord = {
     cohortNote:
       'Illustrative sample. In the connected product each milestone is the above-reserve median at the same day of those campaigns, matched on suburb, price band and product tier.',
     stageHeading: STAGE_HEADING,
+    ladderLabel: LADDER_LABEL,
     metrics: [
       cumulativeMetric({
         label: 'Qualified enquiries',

@@ -15,59 +15,63 @@ const toneColour: Record<Tone, string> = {
 
 // The pacing ladder: what the cohort has reached by each milestone day, with
 // the milestone this campaign is standing on carried in ink.
-function StageLadder({ metric }: { metric: BenchmarkMetric }) {
+function StageLadder({ metric, label }: { metric: BenchmarkMetric; label: string }) {
   const { isMobile } = useViewport();
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: isMobile
-          ? 'repeat(2, 1fr)'
-          : `repeat(${metric.stages.length}, 1fr)`,
-        border: hairline,
-        borderRadius: 4,
-        marginTop: S.m,
-      }}
-    >
-      {metric.stages.map((stage, i) => (
-        <div
-          key={stage.label}
-          style={{
-            padding: `${S.s}px ${S.m}px`,
-            borderLeft: isMobile ? (i % 2 === 1 ? hairline : 'none') : i > 0 ? hairline : 'none',
-            borderTop: isMobile && i > 1 ? hairline : 'none',
-            borderBottom: stage.isCurrent ? `2px solid ${C.ink}` : '2px solid transparent',
-            background: stage.isCurrent ? C.paperAlt : C.paper,
-          }}
-        >
+    <div style={{ marginTop: S.m }}>
+      <div style={{ ...T.label, fontSize: 11, color: C.textFaint, marginBottom: S.xs }}>
+        {label}
+      </div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile
+            ? 'repeat(2, 1fr)'
+            : `repeat(${metric.stages.length}, 1fr)`,
+          border: hairline,
+          borderRadius: 4,
+        }}
+      >
+        {metric.stages.map((stage, i) => (
           <div
+            key={stage.label}
             style={{
-              ...T.label,
-              fontSize: 11,
-              color: stage.isCurrent ? C.text : C.textFaint,
+              padding: `${S.s}px ${S.m}px`,
+              borderLeft: isMobile ? (i % 2 === 1 ? hairline : 'none') : i > 0 ? hairline : 'none',
+              borderTop: isMobile && i > 1 ? hairline : 'none',
+              borderBottom: stage.isCurrent ? `2px solid ${C.ink}` : '2px solid transparent',
+              background: stage.isCurrent ? C.paperAlt : C.paper,
             }}
           >
-            {stage.isCurrent ? `${stage.label} · passed` : stage.label}
+            <div
+              style={{
+                ...T.label,
+                fontSize: 11,
+                color: stage.isCurrent ? C.text : C.textFaint,
+              }}
+            >
+              {stage.isCurrent ? `${stage.label} · passed` : stage.label}
+            </div>
+            <div
+              style={{
+                ...T.dataInline,
+                fontSize: 14,
+                marginTop: 1,
+                color: stage.isPast || stage.isCurrent ? C.text : C.textMuted,
+                fontWeight: stage.isCurrent ? 600 : 500,
+              }}
+            >
+              {stage.display}
+            </div>
           </div>
-          <div
-            style={{
-              ...T.dataInline,
-              fontSize: 14,
-              marginTop: 1,
-              color: stage.isPast || stage.isCurrent ? C.text : C.textMuted,
-              fontWeight: stage.isCurrent ? 600 : 500,
-            }}
-          >
-            {stage.display}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
 
-function MetricRow({ metric }: { metric: BenchmarkMetric }) {
+function MetricRow({ metric, ladderLabel }: { metric: BenchmarkMetric; ladderLabel: string }) {
   const max = Math.max(metric.campaignValue, metric.benchmarkValue, metric.expectedValue) * 1.14;
   const barPct = (metric.campaignValue / max) * 100;
   const expectedPct = (metric.expectedValue / max) * 100;
@@ -150,7 +154,7 @@ function MetricRow({ metric }: { metric: BenchmarkMetric }) {
           {metric.stages[0].display}
         </p>
       ) : (
-        <StageLadder metric={metric} />
+        <StageLadder metric={metric} label={ladderLabel} />
       )}
     </div>
   );
@@ -161,7 +165,7 @@ export default function BenchmarkChart({ data }: Props) {
     <div>
       <p style={{ ...T.caption, color: C.textMuted, maxWidth: 720 }}>{data.stageHeading}</p>
       {data.metrics.map((m) => (
-        <MetricRow key={m.label} metric={m} />
+        <MetricRow key={m.label} metric={m} ladderLabel={data.ladderLabel} />
       ))}
       <p style={{ ...T.caption, color: C.textFaint, marginTop: S.xl, maxWidth: 720 }}>
         {data.cohortNote}

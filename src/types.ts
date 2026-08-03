@@ -108,6 +108,7 @@ export interface BenchmarkBlock {
   subtitle: string;
   cohortNote: string;
   stageHeading: string;
+  ladderLabel: string; // names whose figures the milestone ladder carries
   metrics: BenchmarkMetric[];
 }
 
