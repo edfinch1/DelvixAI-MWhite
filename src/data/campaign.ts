@@ -246,47 +246,14 @@ const albert: CampaignRecord = {
   },
   timeline: extendedTimeline(322),
   gallery: {
-    title: 'Listing photography',
-    countLabel: '6 photographs and the floorplan',
-    caption:
-      'As published on the realestate.com.au listing. These are the images the 2,942 photo views were spent on.',
     photos: [
-      {
-        src: '/photos/albert/01-living.jpg',
-        label: 'Living',
-        alt: 'Living room with sliding doors to the balcony',
-      },
-      {
-        src: '/photos/albert/02-kitchen-dining.jpg',
-        label: 'Kitchen and dining',
-        alt: 'Stone island kitchen with the dining table beyond',
-      },
-      {
-        src: '/photos/albert/03-study-dining.jpg',
-        label: 'Study and dining',
-        alt: 'Built-in study desk looking through to the dining area and balcony',
-      },
-      {
-        src: '/photos/albert/04-main-bedroom.jpg',
-        label: 'Main bedroom',
-        alt: 'Main bedroom opening to the terrace, with treetops and city beyond',
-      },
-      {
-        src: '/photos/albert/05-terrace-city-view.jpg',
-        label: 'Terrace and city outlook',
-        alt: 'Covered terrace with outdoor dining and the Melbourne skyline beyond',
-      },
-      {
-        src: '/photos/albert/06-entry-study.jpg',
-        label: 'Entry',
-        alt: 'Entry hall with herringbone floors and the study nook',
-      },
-      {
-        src: '/photos/albert/07-floorplan.jpg',
-        label: 'Floorplan',
-        alt: 'Two bedroom floorplan with balcony, kitchen, laundry and two lifts',
-        fit: 'contain',
-      },
+      { src: '/photos/albert/01-living.jpg', alt: '102/380 Albert Street, living' },
+      { src: '/photos/albert/02-kitchen-dining.jpg', alt: '102/380 Albert Street, kitchen and dining' },
+      { src: '/photos/albert/03-study-dining.jpg', alt: '102/380 Albert Street, study and dining' },
+      { src: '/photos/albert/04-main-bedroom.jpg', alt: '102/380 Albert Street, main bedroom' },
+      { src: '/photos/albert/05-terrace-city-view.jpg', alt: '102/380 Albert Street, terrace and city outlook' },
+      { src: '/photos/albert/06-entry-study.jpg', alt: '102/380 Albert Street, entry' },
+      { src: '/photos/albert/07-floorplan.jpg', alt: 'Floorplan for 102/380 Albert Street', fit: 'contain' },
     ],
   },
   portal: {
@@ -593,6 +560,18 @@ const moorhouse: CampaignRecord = {
     auctionDay: 53,
     auctionNote: 'Saturday 1 August',
   }),
+  gallery: {
+    photos: [
+      { src: '/photos/moorhouse/01.jpg', alt: '7 Moorhouse Street, listing photograph 1' },
+      { src: '/photos/moorhouse/02.jpg', alt: '7 Moorhouse Street, listing photograph 2' },
+      { src: '/photos/moorhouse/03.jpg', alt: '7 Moorhouse Street, listing photograph 3' },
+      { src: '/photos/moorhouse/04.jpg', alt: '7 Moorhouse Street, listing photograph 4' },
+      { src: '/photos/moorhouse/05.jpg', alt: '7 Moorhouse Street, listing photograph 5' },
+      { src: '/photos/moorhouse/06.jpg', alt: '7 Moorhouse Street, listing photograph 6' },
+      { src: '/photos/moorhouse/07-plan.jpg', alt: 'Floorplan for 7 Moorhouse Street', fit: 'contain' },
+      { src: '/photos/moorhouse/08-plan.jpg', alt: 'Site plan for 7 Moorhouse Street', fit: 'contain' },
+    ],
+  },
   portal: {
     title: 'What the portals already show you',
     subtitle: 'Accurate, and this is where those reports stop.',
@@ -854,6 +833,16 @@ const mathoura: CampaignRecord = {
     reportWindow: ILLUSTRATIVE_WINDOW,
   },
   timeline: extendedTimeline(61),
+  gallery: {
+    photos: [
+      { src: '/photos/mathoura/01.jpg', alt: '4/27 Mathoura Road, listing photograph 1' },
+      { src: '/photos/mathoura/02.jpg', alt: '4/27 Mathoura Road, listing photograph 2' },
+      { src: '/photos/mathoura/03.jpg', alt: '4/27 Mathoura Road, listing photograph 3' },
+      { src: '/photos/mathoura/04.jpg', alt: '4/27 Mathoura Road, listing photograph 4' },
+      { src: '/photos/mathoura/05.jpg', alt: '4/27 Mathoura Road, listing photograph 5' },
+      { src: '/photos/mathoura/06-plan.jpg', alt: 'Floorplan for 4/27 Mathoura Road', fit: 'contain' },
+    ],
+  },
   portal: {
     title: 'What the portals already show you',
     subtitle: 'Accurate, and this is where those reports stop.',
@@ -1111,6 +1100,17 @@ const huntingtower: CampaignRecord = {
     auctionDay: 47,
     auctionNote: 'Saturday 8 August',
   }),
+  gallery: {
+    photos: [
+      { src: '/photos/huntingtower/01.jpg', alt: '12 Huntingtower Road, listing photograph 1' },
+      { src: '/photos/huntingtower/02.jpg', alt: '12 Huntingtower Road, listing photograph 2' },
+      { src: '/photos/huntingtower/03.jpg', alt: '12 Huntingtower Road, listing photograph 3' },
+      { src: '/photos/huntingtower/04.jpg', alt: '12 Huntingtower Road, listing photograph 4' },
+      { src: '/photos/huntingtower/05.jpg', alt: '12 Huntingtower Road, listing photograph 5' },
+      { src: '/photos/huntingtower/06-plan.jpg', alt: 'Basement plan for 12 Huntingtower Road', fit: 'contain' },
+      { src: '/photos/huntingtower/07-plan.jpg', alt: 'Floorplan for 12 Huntingtower Road', fit: 'contain' },
+    ],
+  },
   portal: {
     title: 'What the portals already show you',
     subtitle: 'Accurate, and this is where those reports stop.',
@@ -1363,6 +1363,14 @@ const williams: CampaignRecord = {
     auctionDay: 38,
     auctionNote: 'Saturday 15 August',
   }),
+  gallery: {
+    photos: [
+      { src: '/photos/williams/01.jpg', alt: '3/158 Williams Road, listing photograph 1' },
+      { src: '/photos/williams/02.jpg', alt: '3/158 Williams Road, listing photograph 2' },
+      { src: '/photos/williams/03.jpg', alt: '3/158 Williams Road, listing photograph 3' },
+      { src: '/photos/williams/04-plan.jpg', alt: 'Floorplan for 3/158 Williams Road', fit: 'contain' },
+    ],
+  },
   portal: {
     title: 'What the portals already show you',
     subtitle: 'Accurate, and this is where those reports stop.',
@@ -1610,6 +1618,11 @@ const daly: CampaignRecord = {
     reportWindow: ILLUSTRATIVE_WINDOW,
   },
   timeline: extendedTimeline(96),
+  gallery: {
+    photos: [
+      { src: '/photos/daly/01.jpg', alt: '216/8 Daly Street, listing photograph 1' },
+    ],
+  },
   portal: {
     title: 'What the portals already show you',
     subtitle: 'Accurate, and this is where those reports stop.',

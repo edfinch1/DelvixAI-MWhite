@@ -188,17 +188,13 @@ export interface SourcesBlock {
 
 export interface ListingPhoto {
   src: string;
-  label: string;
   alt: string;
-  fit?: 'cover' | 'contain'; // floorplans are drawings, never cropped
+  fit?: 'cover' | 'contain'; // plans are drawings, never cropped
 }
 
-// The listing gallery, read the way an agent reads it on the portal: a
-// scrollable column beside the campaign, photography first, floorplan last.
+// The listing reel: a scrollable column of the listing images beside the
+// campaign, photography first, plans last.
 export interface PhotoGallery {
-  title: string;
-  countLabel: string;
-  caption: string;
   photos: ListingPhoto[];
 }
 

@@ -1,5 +1,5 @@
-import type { ListingPhoto, PhotoGallery } from '../types';
-import { C, S, T, hairline } from '../tokens';
+import type { PhotoGallery } from '../types';
+import { C, S, hairline } from '../tokens';
 
 interface Props {
   gallery: PhotoGallery;
@@ -7,38 +7,8 @@ interface Props {
 }
 
 // Clears the sticky top bar (identity row plus progress strip, about 141px on
-// desktop) so the rail parks just under it as the page scrolls.
+// desktop) so the reel parks just under it as the page scrolls.
 const RAIL_TOP = 156;
-
-function Tile({ photo }: { photo: ListingPhoto }) {
-  const contain = photo.fit === 'contain';
-  return (
-    <figure style={{ margin: 0 }}>
-      <img
-        src={photo.src}
-        alt={photo.alt}
-        loading="lazy"
-        style={{
-          display: 'block',
-          width: '100%',
-          aspectRatio: contain ? '3 / 4' : '3 / 2',
-          objectFit: contain ? 'contain' : 'cover',
-          background: C.paper,
-        }}
-      />
-      <figcaption
-        style={{
-          ...T.label,
-          fontSize: 11,
-          color: C.textMuted,
-          padding: `${S.xs + 1}px 0 ${S.m}px`,
-        }}
-      >
-        {photo.label}
-      </figcaption>
-    </figure>
-  );
-}
 
 export default function PhotoRail({ gallery, variant = 'beside' }: Props) {
   const beside = variant === 'beside';
@@ -57,37 +27,33 @@ export default function PhotoRail({ gallery, variant = 'beside' }: Props) {
     >
       <div
         style={{
-          display: 'flex',
-          alignItems: 'baseline',
-          justifyContent: 'space-between',
-          gap: S.s,
-          paddingBottom: S.s,
-        }}
-      >
-        <span style={{ ...T.label, color: C.text }}>{gallery.title}</span>
-        <span style={{ ...T.label, fontSize: 11, color: C.textFaint }}>
-          {gallery.countLabel}
-        </span>
-      </div>
-
-      <div
-        style={{
           border: hairline,
           borderRadius: 4,
-          padding: `${S.m}px ${S.m}px 0`,
-          maxHeight: beside ? `calc(100vh - ${RAIL_TOP + 96}px)` : '60vh',
+          padding: S.m,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: S.m,
+          maxHeight: beside ? `calc(100vh - ${RAIL_TOP + 48}px)` : '60vh',
           overflowY: 'auto',
           background: C.paper,
         }}
       >
         {gallery.photos.map((p) => (
-          <Tile key={p.src} photo={p} />
+          <img
+            key={p.src}
+            src={p.src}
+            alt={p.alt}
+            loading="lazy"
+            style={{
+              display: 'block',
+              width: '100%',
+              aspectRatio: p.fit === 'contain' ? '3 / 4' : '3 / 2',
+              objectFit: p.fit === 'contain' ? 'contain' : 'cover',
+              background: C.paper,
+            }}
+          />
         ))}
       </div>
-
-      <p style={{ ...T.caption, fontSize: 12, color: C.textFaint, marginTop: S.s }}>
-        {gallery.caption}
-      </p>
     </aside>
   );
 }
