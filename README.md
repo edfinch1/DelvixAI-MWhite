@@ -7,8 +7,12 @@ feedback, Spend and levers, Actions, Data connections). No backend, no auth,
 no API calls — every figure and sentence lives in `src/data/campaign.ts`.
 
 The worked example is **102/380 Albert Street, East Melbourne**, built on its
-real REA report. The other portfolio rows are illustrative and labelled as
-such on screen — only the worked example opens.
+real REA report. Every other campaign opens the same workspace on entirely
+illustrative data, and each says so in its own header.
+
+Every campaign screen carries a persistent progress strip: where the campaign
+sits in its own length, a Live marker, the time the read was last pulled, and
+a Refresh control that restamps it.
 
 ## What is real
 
@@ -21,7 +25,11 @@ Taken directly from the campaign's REA report (each carries its window on screen
   59 clicked · zero recorded views on video, 3D tour and walkthrough
 - **Dated snapshot:** eBrochure 156 sent / 17 clicked (as at 29 Oct 2025)
 - Benchmark figures 32 qualified enquiries / 8 contract requests / 24 OFI
-  groups are from the pitch deck (slide 7)
+  groups are from the pitch deck (slide 7). They are full-campaign medians;
+  the day 10 / 15 / 20 / 25 milestones shown on the benchmarks screen are
+  modelled shares of those medians (`PACE` in `src/data/campaign.ts`), so a
+  campaign is read against the same day of the cohort rather than against a
+  finished campaign.
 
 ## What is modelled
 
