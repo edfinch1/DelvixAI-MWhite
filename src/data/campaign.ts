@@ -245,6 +245,50 @@ const albert: CampaignRecord = {
     reportWindow: 'Latest portal report: week of 20–26 July 2026',
   },
   timeline: extendedTimeline(322),
+  gallery: {
+    title: 'Listing photography',
+    countLabel: '6 photographs and the floorplan',
+    caption:
+      'As published on the realestate.com.au listing. These are the images the 2,942 photo views were spent on.',
+    photos: [
+      {
+        src: '/photos/albert/01-living.jpg',
+        label: 'Living',
+        alt: 'Living room with sliding doors to the balcony',
+      },
+      {
+        src: '/photos/albert/02-kitchen-dining.jpg',
+        label: 'Kitchen and dining',
+        alt: 'Stone island kitchen with the dining table beyond',
+      },
+      {
+        src: '/photos/albert/03-study-dining.jpg',
+        label: 'Study and dining',
+        alt: 'Built-in study desk looking through to the dining area and balcony',
+      },
+      {
+        src: '/photos/albert/04-main-bedroom.jpg',
+        label: 'Main bedroom',
+        alt: 'Main bedroom opening to the terrace, with treetops and city beyond',
+      },
+      {
+        src: '/photos/albert/05-terrace-city-view.jpg',
+        label: 'Terrace and city outlook',
+        alt: 'Covered terrace with outdoor dining and the Melbourne skyline beyond',
+      },
+      {
+        src: '/photos/albert/06-entry-study.jpg',
+        label: 'Entry',
+        alt: 'Entry hall with herringbone floors and the study nook',
+      },
+      {
+        src: '/photos/albert/07-floorplan.jpg',
+        label: 'Floorplan',
+        alt: 'Two bedroom floorplan with balcony, kitchen, laundry and two lifts',
+        fit: 'contain',
+      },
+    ],
+  },
   portal: {
     title: 'What the portals already show you',
     subtitle: 'Accurate, and this is where those reports stop.',

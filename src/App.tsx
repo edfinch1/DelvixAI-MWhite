@@ -16,6 +16,7 @@ import SpendGaps from './components/SpendGaps';
 import Recommendations from './components/Recommendations';
 import ActionList from './components/ActionList';
 import Sources from './components/Sources';
+import PhotoRail from './components/PhotoRail';
 
 function MetaStrip({ record }: { record: CampaignRecord }) {
   const { isMobile } = useViewport();
@@ -117,8 +118,12 @@ function CampaignScreen({ record, section }: { record: CampaignRecord; section: 
   }
 }
 
+// Below this the page is not wide enough to carry a gallery beside the
+// campaign, so the rail moves under the content instead.
+const RAIL_MIN_WIDTH = 1360;
+
 export default function App() {
-  const { isNarrow, isMobile } = useViewport();
+  const { width, isNarrow, isMobile } = useViewport();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [section, setSection] = useState('overview');
 
@@ -137,6 +142,12 @@ export default function App() {
     setSection(id);
     window.scrollTo(0, 0);
   };
+
+  const showRail = !record?.gallery || section !== 'overview'
+    ? 'none'
+    : width >= RAIL_MIN_WIDTH
+      ? 'beside'
+      : 'below';
 
   if (!record) {
     return (
@@ -175,14 +186,26 @@ export default function App() {
           onSection={goSection}
         />
 
-        <main
+        <div
           style={{
-            maxWidth: 1024,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: S.xl,
             padding: `${isMobile ? S.l : S.xl}px ${isMobile ? S.base : S.xl}px ${S.xxl}px`,
           }}
         >
-          <CampaignScreen record={record} section={section} />
-        </main>
+          <main style={{ flex: 1, minWidth: 0, maxWidth: 1024 }}>
+            <CampaignScreen record={record} section={section} />
+            {showRail === 'below' && record.gallery && (
+              <div style={{ marginTop: S.xl }}>
+                <PhotoRail gallery={record.gallery} variant="below" />
+              </div>
+            )}
+          </main>
+          {showRail === 'beside' && record.gallery && (
+            <PhotoRail gallery={record.gallery} />
+          )}
+        </div>
       </div>
     </div>
   );

@@ -186,6 +186,22 @@ export interface SourcesBlock {
   rows: SourceRow[];
 }
 
+export interface ListingPhoto {
+  src: string;
+  label: string;
+  alt: string;
+  fit?: 'cover' | 'contain'; // floorplans are drawings, never cropped
+}
+
+// The listing gallery, read the way an agent reads it on the portal: a
+// scrollable column beside the campaign, photography first, floorplan last.
+export interface PhotoGallery {
+  title: string;
+  countLabel: string;
+  caption: string;
+  photos: ListingPhoto[];
+}
+
 export interface NavSection {
   id: string;
   label: string;
@@ -226,6 +242,7 @@ export interface CampaignRecord {
   id: string;
   header: PropertyHeader;
   timeline: CampaignTimeline;
+  gallery?: PhotoGallery;
   portal: PortalStats;
   diagnosis: Diagnosis;
   health: HealthScore;
