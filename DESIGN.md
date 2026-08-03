@@ -93,6 +93,8 @@ const C = {
 - No 3D, no rounded bar caps, no drop shadows, no legends unless genuinely ambiguous.
 - Gridlines: one horizontal hairline per axis tick at `#EDEFF1`. No vertical gridlines.
 - Benchmark markers: a single 1px vertical rule in `C.ink` with a plain-sentence label above it — not a mono chip.
+- Benchmarks are read against the same day of the cohort, never only against the finished campaign. The solid rule is today's expectation, a 1px dashed rule in `C.lineStrong` marks the full-campaign median, and the milestone ladder underneath (day 10 / 15 / 20 / 25 / full) carries the day the campaign has last passed. Bar colour is pace against today, not against the finish.
+- The campaign progress strip sits inside the sticky top bar, so it is on screen on every tab of a campaign: position in the campaign length, a Live marker, the time of the last read, and Refresh.
 - Bar height 10px, 4px gap. Never gradient-filled.
 - Every chart must be readable at a glance without a legend. If it isn't, it's the wrong chart.
 
@@ -129,6 +131,8 @@ Benji's brief: *"non-Claude-looking"*. That's a copy problem as much as a visual
 The intelligence should be **evident from the quality of the conclusion**, not announced. An agent doesn't want a robot; they want an analyst. Write every line as though a senior MW data analyst wrote it.
 
 Replace confidence percentages with the actual basis: *"Based on 2,800 comparable Marshall White campaigns"* is more persuasive than *"89% confidence"* and is a real, checkable claim.
+
+**No em dashes in anything the client sees.** Benji asked for this directly. An em dash is almost always a full stop, a comma, a colon or a semicolon doing a clearer job, and a screen full of them reads as machine-written. Use the punctuation the sentence actually needs. En dashes stay where they belong: number and date ranges (`20–26 July`, `$1,000–$2,000`). Grep for `—` before declaring done.
 
 ---
 

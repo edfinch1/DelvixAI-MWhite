@@ -11,6 +11,27 @@ export interface PropertyHeader {
   reportWindow: string;
 }
 
+export interface TimelineMark {
+  label: string;
+  day: number;
+  kind: 'start' | 'today' | 'end';
+}
+
+// The persistent strip above every campaign screen: where the campaign sits in
+// its own length, and how fresh the read is.
+export interface CampaignTimeline {
+  label: string; // 'Campaign progress'
+  currentDay: number;
+  totalDays: number;
+  positionLabel: string; // 'Day 18 of 35'
+  remainingLabel: string; // '17 days until auction'
+  marks: TimelineMark[];
+  liveLabel: string; // 'Live'
+  updatedPrefix: string; // 'Updated as of'
+  updatedAt: string; // '2:14pm 03/08/2026'
+  refreshLabel: string;
+}
+
 export interface Stat {
   value: string;
   label: string;
@@ -55,12 +76,29 @@ export interface HealthScore {
   caption: string;
 }
 
+// One milestone in the pacing ladder: what an above-reserve campaign has
+// usually reached by this day.
+export interface BenchmarkStage {
+  label: string; // 'Day 15'
+  day: number;
+  value: number;
+  display: string;
+  isCurrent?: boolean; // the milestone this campaign is standing on
+  isPast?: boolean;
+}
+
 export interface BenchmarkMetric {
   label: string;
   campaignValue: number;
   campaignDisplay: string;
-  benchmarkValue: number;
+  benchmarkValue: number; // full-campaign median
   benchmarkDisplay: string;
+  expectedValue: number; // what the cohort has reached by today
+  expectedDisplay: string; // 'Expected by day 18: 20'
+  paceNote: string; // plain-sentence read of campaign against today
+  paceTone: Tone;
+  stages: BenchmarkStage[];
+  flatBenchmark?: boolean; // a rate, so the expectation does not accumulate
   betterIsLower?: boolean;
   windowNote: string;
 }
@@ -69,6 +107,7 @@ export interface BenchmarkBlock {
   title: string;
   subtitle: string;
   cohortNote: string;
+  stageHeading: string;
   metrics: BenchmarkMetric[];
 }
 
@@ -186,6 +225,7 @@ export interface PortfolioBlock {
 export interface CampaignRecord {
   id: string;
   header: PropertyHeader;
+  timeline: CampaignTimeline;
   portal: PortalStats;
   diagnosis: Diagnosis;
   health: HealthScore;

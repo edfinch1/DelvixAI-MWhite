@@ -1,8 +1,14 @@
-import type { CampaignRecord, FixtureData } from '../types';
+import type {
+  BenchmarkMetric,
+  CampaignRecord,
+  CampaignTimeline,
+  FixtureData,
+  Tone,
+} from '../types';
 
 // ALL demo content lives here. Components render this and nothing else.
 //
-// Provenance key — see README.md and the data connections screen:
+// Provenance key. See README.md and the data connections screen:
 //   [REA-weekly]   REA report, week of 20–26 Jul 2026. Real.
 //   [REA-campaign] REA report, campaign to date. Real.
 //   [REA-dated]    REA report, dated snapshot. Real, carries its own date.
@@ -16,7 +22,215 @@ import type { CampaignRecord, FixtureData } from '../types';
 // Never mix time windows in one sentence. Real zeros stay; modelled figures
 // are never round.
 
-const ILLUSTRATIVE_WINDOW = 'Illustrative campaign — sample data';
+const ILLUSTRATIVE_WINDOW = 'Illustrative campaign, sample data';
+
+// The moment the read was last pulled from the connected systems. One stamp for
+// the whole demonstration, refreshed on screen when the agent asks for it.
+const LAST_SYNC = '2:14pm 03/08/2026';
+
+const STANDARD_CAMPAIGN_DAYS = 35;
+
+// Milestone pacing. The share of the full-campaign benchmark that above-reserve
+// campaigns have usually reached by each milestone day, modelled on the
+// analysed Marshall White set. Front-loaded, because the launch fortnight
+// carries the enquiry spike.
+const PACE = [
+  { label: 'Day 10', day: 10, share: 0.34 },
+  { label: 'Day 15', day: 15, share: 0.52 },
+  { label: 'Day 20', day: 20, share: 0.68 },
+  { label: 'Day 25', day: 25, share: 0.83 },
+  { label: 'Full campaign', day: STANDARD_CAMPAIGN_DAYS, share: 1 },
+] as const;
+
+// Straight-line read between milestones, clamped at both ends.
+function expectedShare(day: number): number {
+  if (day <= PACE[0].day) return (day / PACE[0].day) * PACE[0].share;
+  for (let i = 1; i < PACE.length; i += 1) {
+    const prev = PACE[i - 1];
+    const next = PACE[i];
+    if (day <= next.day) {
+      const progress = (day - prev.day) / (next.day - prev.day);
+      return prev.share + progress * (next.share - prev.share);
+    }
+  }
+  return 1;
+}
+
+function paceTone(actual: number, expected: number, betterIsLower = false): Tone {
+  const ratio = betterIsLower
+    ? actual === 0
+      ? 1
+      : expected / actual
+    : expected === 0
+      ? 1
+      : actual / expected;
+  if (ratio >= 0.95) return 'good';
+  if (ratio >= 0.8) return 'warn';
+  return 'bad';
+}
+
+function paceVerdict(tone: Tone): string {
+  if (tone === 'good') return 'On pace';
+  if (tone === 'warn') return 'Just short of pace';
+  return 'Behind pace';
+}
+
+interface CumulativeInput {
+  label: string;
+  value: number;
+  valueDisplay: string;
+  full: number;
+  day: number;
+  unit?: string;
+  windowNote: string;
+}
+
+// A metric that accumulates across the campaign, so the expectation moves with
+// the day the campaign is on.
+function cumulativeMetric(input: CumulativeInput): BenchmarkMetric {
+  const unit = input.unit ?? '';
+  const past = input.day >= STANDARD_CAMPAIGN_DAYS;
+  const expected = Math.round(input.full * expectedShare(input.day));
+  const expectedText = `${expected}${unit}`;
+  const tone = paceTone(input.value, expected);
+  const dayRef = past
+    ? `the end of a standard ${STANDARD_CAMPAIGN_DAYS}-day campaign`
+    : `day ${input.day}`;
+
+  // The milestone the campaign has most recently passed, so the ladder shows
+  // where it is standing rather than only where it is heading.
+  const passed = PACE.filter((p) => input.day >= p.day);
+  const currentDay = passed.length ? passed[passed.length - 1].day : -1;
+
+  return {
+    label: input.label,
+    campaignValue: input.value,
+    campaignDisplay: input.valueDisplay,
+    benchmarkValue: input.full,
+    benchmarkDisplay: `Full-campaign benchmark ${input.full}${unit}`,
+    expectedValue: expected,
+    expectedDisplay: past
+      ? `Full-campaign expectation ${expectedText}`
+      : `Expected by day ${input.day}: ${expectedText}`,
+    paceNote: `${paceVerdict(tone)}. Above-reserve campaigns reach ${expectedText} by ${dayRef}, and this campaign is at ${input.valueDisplay}.`,
+    paceTone: tone,
+    stages: PACE.map((p) => {
+      const value = Math.round(input.full * p.share);
+      return {
+        label: p.label,
+        day: p.day,
+        value,
+        display: `${value}${unit}`,
+        isPast: input.day > p.day,
+        isCurrent: p.day === currentDay,
+      };
+    }),
+    windowNote: input.windowNote,
+  };
+}
+
+interface RateInput {
+  label: string;
+  value: number;
+  valueDisplay: string;
+  benchmark: number;
+  benchmarkDisplay: string;
+  benchmarkPhrase: string;
+  stageSentence: string;
+  betterIsLower?: boolean;
+  windowNote: string;
+}
+
+// A rate rather than a running total, so the same benchmark applies at day 10
+// and at the close.
+function rateMetric(input: RateInput): BenchmarkMetric {
+  const tone = paceTone(input.value, input.benchmark, input.betterIsLower);
+  return {
+    label: input.label,
+    campaignValue: input.value,
+    campaignDisplay: input.valueDisplay,
+    benchmarkValue: input.benchmark,
+    benchmarkDisplay: input.benchmarkDisplay,
+    expectedValue: input.benchmark,
+    expectedDisplay: input.benchmarkDisplay,
+    paceNote: `${paceVerdict(tone)}. The benchmark is ${input.benchmarkPhrase}, and this campaign is running at ${input.valueDisplay}.`,
+    paceTone: tone,
+    stages: [
+      {
+        label: 'Every stage',
+        day: 0,
+        value: input.benchmark,
+        display: input.stageSentence,
+        isCurrent: true,
+      },
+    ],
+    flatBenchmark: true,
+    betterIsLower: input.betterIsLower,
+    windowNote: input.windowNote,
+  };
+}
+
+const FOLLOW_UP_BENCHMARK = {
+  benchmark: 1,
+  benchmarkDisplay: 'Benchmark under 24 hours',
+  benchmarkPhrase: 'a first reply inside 24 hours',
+  stageSentence: 'A rate, not a running total, so this benchmark holds at every milestone.',
+  betterIsLower: true,
+};
+
+const INSPECTION_ACTION_BENCHMARK = {
+  benchmark: 2.7,
+  benchmarkDisplay: 'Benchmark 2.7 per week',
+  benchmarkPhrase: '2.7 inspection actions a week',
+  stageSentence: 'A weekly rate, not a running total, so this benchmark holds at every milestone.',
+};
+
+const STAGE_HEADING =
+  'Read against where above-reserve campaigns sit on the same day, not only against the finished campaign. The solid rule on each bar is today’s expectation, the dashed rule is the full-campaign median, and the ladder below shows the milestones either side.';
+
+// The persistent strip. Auction campaigns run to auction day; campaigns past a
+// standard cycle are measured against that cycle instead.
+function auctionTimeline(opts: {
+  currentDay: number;
+  auctionDay: number;
+  auctionNote: string;
+}): CampaignTimeline {
+  return {
+    label: 'Campaign progress',
+    currentDay: opts.currentDay,
+    totalDays: opts.auctionDay,
+    positionLabel: `Day ${opts.currentDay} of ${opts.auctionDay}`,
+    remainingLabel: `${opts.auctionDay - opts.currentDay} days until auction, ${opts.auctionNote}`,
+    marks: [
+      { label: 'Day 1', day: 1, kind: 'start' },
+      { label: `Day ${opts.currentDay} (today)`, day: opts.currentDay, kind: 'today' },
+      { label: 'Auction day', day: opts.auctionDay, kind: 'end' },
+    ],
+    liveLabel: 'Live',
+    updatedPrefix: 'Updated as of',
+    updatedAt: LAST_SYNC,
+    refreshLabel: 'Refresh',
+  };
+}
+
+function extendedTimeline(currentDay: number): CampaignTimeline {
+  return {
+    label: 'Campaign progress',
+    currentDay,
+    totalDays: currentDay,
+    positionLabel: `Day ${currentDay}`,
+    remainingLabel: `${currentDay - STANDARD_CAMPAIGN_DAYS} days past a standard ${STANDARD_CAMPAIGN_DAYS}-day campaign`,
+    marks: [
+      { label: 'Day 1', day: 1, kind: 'start' },
+      { label: `Day ${STANDARD_CAMPAIGN_DAYS} (standard cycle)`, day: STANDARD_CAMPAIGN_DAYS, kind: 'start' },
+      { label: `Day ${currentDay} (today)`, day: currentDay, kind: 'today' },
+    ],
+    liveLabel: 'Live',
+    updatedPrefix: 'Updated as of',
+    updatedAt: LAST_SYNC,
+    refreshLabel: 'Refresh',
+  };
+}
 
 const albert: CampaignRecord = {
   id: 'albert',
@@ -30,11 +244,12 @@ const albert: CampaignRecord = {
     ],
     reportWindow: 'Latest portal report: week of 20–26 July 2026',
   },
+  timeline: extendedTimeline(322),
   portal: {
     title: 'What the portals already show you',
     subtitle: 'Accurate, and this is where those reports stop.',
     stats: [
-      // [REA-weekly] — conversion contexts computed within the same week
+      // [REA-weekly]. Conversion contexts computed within the same week
       { value: '5,020', label: 'Campaign exposure', context: 'Search, email and app reach' },
       { value: '138', label: 'Listing views', context: '2.7% of exposure clicked through' },
       { value: '8', label: 'Enquiries', context: '5.8% of views enquired' },
@@ -42,7 +257,7 @@ const albert: CampaignRecord = {
         value: '0',
         label: 'Inspection actions',
         context: 'None of the 8 enquiries went further',
-        highlight: true, // the load-bearing number — real zero
+        highlight: true, // the load-bearing number, a real zero
       },
     ],
     windowCaption: 'Week of 20–26 July 2026, realestate.com.au.',
@@ -54,7 +269,7 @@ const albert: CampaignRecord = {
       [
         { text: 'This listing gets found and studied, and then nothing happens. ' },
         {
-          text: 'Across the campaign, buyers have opened the photos 2,942 times — and saved the listing twice.',
+          text: 'Across the campaign, buyers have opened the photos 2,942 times, and saved the listing twice.',
           strong: true,
         },
         {
@@ -72,7 +287,7 @@ const albert: CampaignRecord = {
     systems:
       'No single system shows this. The portal report holds the traffic and the zero inspection intent, but the reason sits elsewhere: buyer feedback logged in Box+Dice names price as the dominant objection, and Red HQ shows no video or 3D tour has been purchased to shift the first impression. The pattern only becomes visible when those records are read together.',
     caption:
-      'Portal figures are taken directly from the campaign’s REA report. The Box+Dice and Red HQ layers are modelled — see data connections.',
+      'Portal figures are taken directly from the campaign’s REA report. The Box+Dice and Red HQ layers are modelled. See data connections.',
   },
   health: {
     title: 'Campaign health',
@@ -82,7 +297,7 @@ const albert: CampaignRecord = {
     outOf: '/ 100',
     verdict: 'Well below the above-reserve band',
     summary:
-      'Traffic is doing its job. The score is dragged down by inspection intent — zero actions last week — and a database that has stopped responding.',
+      'Traffic is doing its job. The score is dragged down by inspection intent, with zero actions last week, and by a database that has stopped responding.',
     subScores: [
       { label: 'Traffic', score: 78, weightNote: 'Weighted 20%' },
       { label: 'Enquiry conversion', score: 44, weightNote: 'Weighted 25%' },
@@ -91,62 +306,61 @@ const albert: CampaignRecord = {
       { label: 'Media completeness', score: 38, weightNote: 'Weighted 15%' },
     ],
     caption:
-      'Weighting is modelled on the Marshall White historical cohort — see data connections.',
+      'Weighting is modelled on the Marshall White historical cohort. See data connections.',
   },
   benchmark: {
     title: 'Benchmarked against campaigns that sold above reserve',
     subtitle:
       'This campaign against the median for comparable listings that closed above reserve.',
     cohortNote:
-      'Drawn from 2,800 analysed Marshall White apartment campaigns. Benchmark is the median for comparable listings that sold above reserve, matched on suburb, price band and product tier. Campaign-side values are modelled pending Box+Dice access, except inspection actions, which are from the REA report.',
+      'Drawn from 2,800 analysed Marshall White apartment campaigns. Benchmarks are medians for comparable listings that sold above reserve, matched on suburb, price band and product tier, with the milestone figures taken at the same day of those campaigns. Campaign-side values are modelled pending Box+Dice access, except inspection actions, which are from the REA report.',
+    stageHeading: STAGE_HEADING,
     metrics: [
-      {
+      cumulativeMetric({
         label: 'Qualified enquiries',
-        campaignValue: 6,
-        campaignDisplay: '6',
-        benchmarkValue: 32, // [deck]
-        benchmarkDisplay: 'Benchmark 32',
+        value: 6,
+        valueDisplay: '6',
+        full: 32, // [deck]
+        day: 322,
         windowNote: 'Campaign to date, modelled',
-      },
-      {
+      }),
+      cumulativeMetric({
         label: 'Open-for-inspection attendance',
-        campaignValue: 11,
-        campaignDisplay: '11 groups',
-        benchmarkValue: 24, // [deck]
-        benchmarkDisplay: 'Benchmark 24 groups',
+        value: 11,
+        valueDisplay: '11 groups',
+        full: 24, // [deck]
+        unit: ' groups',
+        day: 322,
         windowNote: 'Campaign to date, modelled',
-      },
-      {
+      }),
+      cumulativeMetric({
         label: 'Contract requests',
-        campaignValue: 1,
-        campaignDisplay: '1',
-        benchmarkValue: 8, // [deck]
-        benchmarkDisplay: 'Benchmark 8',
+        value: 1,
+        valueDisplay: '1',
+        full: 8, // [deck]
+        day: 322,
         windowNote: 'Campaign to date, modelled',
-      },
-      {
+      }),
+      rateMetric({
         label: 'Follow-up speed',
-        campaignValue: 3.4,
-        campaignDisplay: '3.4 days',
-        benchmarkValue: 1,
-        benchmarkDisplay: 'Benchmark under 24 hours',
-        betterIsLower: true,
+        value: 3.4,
+        valueDisplay: '3.4 days',
+        ...FOLLOW_UP_BENCHMARK,
         windowNote: 'Median across campaign, modelled',
-      },
-      {
+      }),
+      rateMetric({
         label: 'Inspection actions',
-        campaignValue: 0,
-        campaignDisplay: '0',
-        benchmarkValue: 2.7,
-        benchmarkDisplay: 'Benchmark 2.7 per week',
+        value: 0,
+        valueDisplay: '0',
+        ...INSPECTION_ACTION_BENCHMARK,
         windowNote: 'Week of 20–26 July 2026, REA report',
-      },
+      }),
     ],
   },
   feedback: {
     title: 'What buyers are actually saying',
     subtitle:
-      'REA and Domain can’t see this — it only exists in agent notes from inspections and enquiries.',
+      'REA and Domain cannot see this. It only exists in agent notes from inspections and enquiries.',
     basis: 'Share of 47 logged feedback notes mentioning each theme.',
     themes: [
       {
@@ -175,10 +389,10 @@ const albert: CampaignRecord = {
       },
     ],
     caption:
-      'Illustrative. This layer is modelled pending Box+Dice access — the note count and proportions show how the connected product reads, not a real measurement.',
+      'Illustrative. This layer is modelled pending Box+Dice access. The note count and proportions show how the connected product reads, not a real measurement.',
   },
   spend: {
-    title: 'What the campaign has bought — and what it hasn’t',
+    title: 'What the campaign has bought, and what it hasn’t',
     subtitle:
       'Knowing what is still on the table turns a concern into a specific, fundable next step.',
     purchasedHeading: 'Purchased',
@@ -196,7 +410,7 @@ const albert: CampaignRecord = {
       { label: 'Database blast', note: 'Beyond standard portal notifications' },
     ],
     caption:
-      'Purchase status is modelled pending Red HQ access — only the Premiere tier is confirmed by the REA report. The zero view counts are real REA figures and are consistent with those assets never being produced.',
+      'Purchase status is modelled pending Red HQ access. Only the Premiere tier is confirmed by the REA report. The zero view counts are real REA figures and are consistent with those assets never being produced.',
   },
   recommendations: {
     title: 'Recommended levers, by budget',
@@ -210,7 +424,7 @@ const albert: CampaignRecord = {
           {
             action: 'Take the price conversation to the vendor, with evidence',
             evidence:
-              'REA, campaign to date: 2,942 photo views and 266 floorplan views against 2 saves. Buyers study the listing and rule it out — and Box+Dice feedback (modelled) names price in 62% of notes.',
+              'REA, campaign to date: 2,942 photo views and 266 floorplan views against 2 saves. Buyers study the listing and rule it out, and Box+Dice feedback (modelled) names price in 62% of notes.',
             impact: 'Repositions the campaign rather than re-marketing it',
             cost: 'No cost',
           },
@@ -315,7 +529,7 @@ const albert: CampaignRecord = {
 };
 
 // ---------------------------------------------------------------------------
-// Illustrative campaigns. Entirely sample data — marked as such on screen.
+// Illustrative campaigns. Entirely sample data, marked as such on screen.
 // ---------------------------------------------------------------------------
 
 const moorhouse: CampaignRecord = {
@@ -330,6 +544,11 @@ const moorhouse: CampaignRecord = {
     ],
     reportWindow: ILLUSTRATIVE_WINDOW,
   },
+  timeline: auctionTimeline({
+    currentDay: 47,
+    auctionDay: 53,
+    auctionNote: 'Saturday 1 August',
+  }),
   portal: {
     title: 'What the portals already show you',
     subtitle: 'Accurate, and this is where those reports stop.',
@@ -348,7 +567,7 @@ const moorhouse: CampaignRecord = {
       [
         { text: 'The campaign is generating demand faster than it is being answered. ' },
         {
-          text: '9 enquiries this week — and the median first response is running at 2.9 days.',
+          text: '9 enquiries this week, and the median first response is running at 2.9 days.',
           strong: true,
         },
         { text: ' Warm buyers are cooling in the queue, not in the market.' },
@@ -360,8 +579,8 @@ const moorhouse: CampaignRecord = {
       ],
     ],
     systems:
-      'REA and Domain both show healthy traffic, which is why nothing looks wrong from the portal side. Box+Dice response timestamps show 6 of this week’s 9 enquiries waited more than 48 hours for a first reply — that is where the leak is.',
-    caption: 'Illustrative campaign — sample data shaped like the connected product.',
+      'REA and Domain both show healthy traffic, which is why nothing looks wrong from the portal side. Box+Dice response timestamps show 6 of this week’s 9 enquiries waited more than 48 hours for a first reply. That is where the leak is.',
+    caption: 'Illustrative campaign. Sample data, shaped like the connected product.',
   },
   health: {
     title: 'Campaign health',
@@ -379,62 +598,61 @@ const moorhouse: CampaignRecord = {
       { label: 'Database activity', score: 31, weightNote: 'Weighted 15%' },
       { label: 'Media completeness', score: 52, weightNote: 'Weighted 15%' },
     ],
-    caption: 'Illustrative — weighting shaped like the connected product.',
+    caption: 'Illustrative. Weighting shaped like the connected product.',
   },
   benchmark: {
     title: 'Benchmarked against campaigns that sold above reserve',
     subtitle:
       'This campaign against the median for comparable listings that closed above reserve.',
     cohortNote:
-      'Illustrative sample. In the connected product the benchmark is the above-reserve median matched on suburb, price band and product tier.',
+      'Illustrative sample. In the connected product each milestone is the above-reserve median at the same day of those campaigns, matched on suburb, price band and product tier.',
+    stageHeading: STAGE_HEADING,
     metrics: [
-      {
+      cumulativeMetric({
         label: 'Qualified enquiries',
-        campaignValue: 19,
-        campaignDisplay: '19',
-        benchmarkValue: 32,
-        benchmarkDisplay: 'Benchmark 32',
-        windowNote: 'Campaign to date, illustrative',
-      },
-      {
+        value: 28,
+        valueDisplay: '28',
+        full: 32,
+        day: 47,
+        windowNote: 'Campaign to date at day 47, illustrative',
+      }),
+      cumulativeMetric({
         label: 'Open-for-inspection attendance',
-        campaignValue: 17,
-        campaignDisplay: '17 groups',
-        benchmarkValue: 24,
-        benchmarkDisplay: 'Benchmark 24 groups',
-        windowNote: 'Campaign to date, illustrative',
-      },
-      {
+        value: 22,
+        valueDisplay: '22 groups',
+        full: 24,
+        unit: ' groups',
+        day: 47,
+        windowNote: 'Campaign to date at day 47, illustrative',
+      }),
+      cumulativeMetric({
         label: 'Contract requests',
-        campaignValue: 3,
-        campaignDisplay: '3',
-        benchmarkValue: 8,
-        benchmarkDisplay: 'Benchmark 8',
-        windowNote: 'Campaign to date, illustrative',
-      },
-      {
+        value: 3,
+        valueDisplay: '3',
+        full: 8,
+        day: 47,
+        windowNote: 'Campaign to date at day 47, illustrative',
+      }),
+      rateMetric({
         label: 'Follow-up speed',
-        campaignValue: 2.9,
-        campaignDisplay: '2.9 days',
-        benchmarkValue: 1,
-        benchmarkDisplay: 'Benchmark under 24 hours',
-        betterIsLower: true,
+        value: 2.9,
+        valueDisplay: '2.9 days',
+        ...FOLLOW_UP_BENCHMARK,
         windowNote: 'Median across campaign, illustrative',
-      },
-      {
+      }),
+      rateMetric({
         label: 'Inspection actions',
-        campaignValue: 4,
-        campaignDisplay: '4',
-        benchmarkValue: 2.7,
-        benchmarkDisplay: 'Benchmark 2.7 per week',
+        value: 4,
+        valueDisplay: '4',
+        ...INSPECTION_ACTION_BENCHMARK,
         windowNote: 'This week, illustrative',
-      },
+      }),
     ],
   },
   feedback: {
     title: 'What buyers are actually saying',
     subtitle:
-      'REA and Domain can’t see this — it only exists in agent notes from inspections and enquiries.',
+      'REA and Domain cannot see this. It only exists in agent notes from inspections and enquiries.',
     basis: 'Share of 31 logged feedback notes mentioning each theme.',
     themes: [
       {
@@ -462,10 +680,10 @@ const moorhouse: CampaignRecord = {
         note: 'Two notes mention the rear rooms photographing dark.',
       },
     ],
-    caption: 'Illustrative campaign — sample data shaped like the connected product.',
+    caption: 'Illustrative campaign. Sample data, shaped like the connected product.',
   },
   spend: {
-    title: 'What the campaign has bought — and what it hasn’t',
+    title: 'What the campaign has bought, and what it hasn’t',
     subtitle:
       'Knowing what is still on the table turns a concern into a specific, fundable next step.',
     purchasedHeading: 'Purchased',
@@ -474,7 +692,7 @@ const moorhouse: CampaignRecord = {
       { label: 'Photography', note: 'Day and twilight set' },
       { label: 'Floorplan', note: 'With land dimensions' },
       { label: 'REA Highlight tier', note: 'Runs to auction week' },
-      { label: 'Print — local press', note: 'Two insertions' },
+      { label: 'Local press print', note: 'Two insertions' },
     ],
     notPurchased: [
       { label: 'Property video', note: 'Not on the campaign record' },
@@ -482,7 +700,7 @@ const moorhouse: CampaignRecord = {
       { label: 'Social retargeting', note: 'Not on the campaign record' },
       { label: 'Database blast', note: 'Beyond standard portal notifications' },
     ],
-    caption: 'Illustrative campaign — sample data shaped like the connected product.',
+    caption: 'Illustrative campaign. Sample data, shaped like the connected product.',
   },
   recommendations: {
     title: 'Recommended levers, by budget',
@@ -510,7 +728,7 @@ const moorhouse: CampaignRecord = {
           {
             action: 'Send inspection follow-up notes within 24 hours of each OFI',
             evidence:
-              '17 groups have attended and fewer than half have a follow-up logged in Box+Dice.',
+              '22 groups have attended and fewer than half have a follow-up logged in Box+Dice.',
             impact: 'Converts attendance into second inspections',
             cost: 'No cost',
           },
@@ -541,7 +759,7 @@ const moorhouse: CampaignRecord = {
         label: '$3,000+',
         recommendations: [
           {
-            action: 'Hold — no case for larger spend',
+            action: 'Hold: no case for larger spend',
             evidence:
               'Demand is healthy; the constraint is response speed, which money doesn’t fix. Revisit only if enquiry volume softens after the follow-up fix.',
             impact: 'Protects the vendor relationship',
@@ -558,7 +776,7 @@ const moorhouse: CampaignRecord = {
       {
         id: 'reply',
         label: 'Reply to the six unanswered enquiries',
-        detail: 'Oldest first — two are past four days.',
+        detail: 'Oldest first. Two are past four days.',
       },
       {
         id: 'rule',
@@ -591,6 +809,7 @@ const mathoura: CampaignRecord = {
     ],
     reportWindow: ILLUSTRATIVE_WINDOW,
   },
+  timeline: extendedTimeline(61),
   portal: {
     title: 'What the portals already show you',
     subtitle: 'Accurate, and this is where those reports stop.',
@@ -610,18 +829,18 @@ const mathoura: CampaignRecord = {
         { text: 'Buyers click through in volume, but few raise their hand: ' },
         { text: '341 views this week converted to 11 enquiries', strong: true },
         {
-          text: ' — well under the cohort rate for Toorak apartments. The listing attracts lookers; the guide and the copy aren’t converting them into conversations.',
+          text: ', well under the cohort rate for Toorak apartments. The listing attracts lookers; the guide and the copy aren’t converting them into conversations.',
         },
       ],
       [
         { text: 'Feedback points at the guide sitting above two recent comparable sales, and ' },
         { text: 'the enquiry-form drop-off says the interest is real', strong: true },
-        { text: ' — buyers start the form and stop at the price conversation.' },
+        { text: ': buyers start the form and stop at the price conversation.' },
       ],
     ],
     systems:
       'The portals show strong traffic and would call this campaign healthy. Google Analytics shows buyers stalling on the enquiry form, and Box+Dice notes name the two comparable sales buyers are quoting. Together they say the demand is priced out, not absent.',
-    caption: 'Illustrative campaign — sample data shaped like the connected product.',
+    caption: 'Illustrative campaign. Sample data, shaped like the connected product.',
   },
   health: {
     title: 'Campaign health',
@@ -629,7 +848,7 @@ const mathoura: CampaignRecord = {
       'One number for the vendor conversation, decomposed into the five inputs that separate above-reserve campaigns from the rest.',
     score: '64',
     outOf: '/ 100',
-    verdict: 'Watch — conversion is the drag',
+    verdict: 'Watch: conversion is the drag',
     summary:
       'Traffic and media are strong. Enquiry conversion is running at roughly half the cohort rate and is the single number holding the campaign back.',
     subScores: [
@@ -639,62 +858,61 @@ const mathoura: CampaignRecord = {
       { label: 'Database activity', score: 58, weightNote: 'Weighted 15%' },
       { label: 'Media completeness', score: 79, weightNote: 'Weighted 15%' },
     ],
-    caption: 'Illustrative — weighting shaped like the connected product.',
+    caption: 'Illustrative. Weighting shaped like the connected product.',
   },
   benchmark: {
     title: 'Benchmarked against campaigns that sold above reserve',
     subtitle:
       'This campaign against the median for comparable listings that closed above reserve.',
     cohortNote:
-      'Illustrative sample. In the connected product the benchmark is the above-reserve median matched on suburb, price band and product tier.',
+      'Illustrative sample. In the connected product each milestone is the above-reserve median at the same day of those campaigns, matched on suburb, price band and product tier.',
+    stageHeading: STAGE_HEADING,
     metrics: [
-      {
+      cumulativeMetric({
         label: 'Qualified enquiries',
-        campaignValue: 21,
-        campaignDisplay: '21',
-        benchmarkValue: 32,
-        benchmarkDisplay: 'Benchmark 32',
-        windowNote: 'Campaign to date, illustrative',
-      },
-      {
+        value: 21,
+        valueDisplay: '21',
+        full: 32,
+        day: 61,
+        windowNote: 'Campaign to date at day 61, illustrative',
+      }),
+      cumulativeMetric({
         label: 'Open-for-inspection attendance',
-        campaignValue: 26,
-        campaignDisplay: '26 groups',
-        benchmarkValue: 24,
-        benchmarkDisplay: 'Benchmark 24 groups',
-        windowNote: 'Campaign to date, illustrative',
-      },
-      {
+        value: 26,
+        valueDisplay: '26 groups',
+        full: 24,
+        unit: ' groups',
+        day: 61,
+        windowNote: 'Campaign to date at day 61, illustrative',
+      }),
+      cumulativeMetric({
         label: 'Contract requests',
-        campaignValue: 4,
-        campaignDisplay: '4',
-        benchmarkValue: 8,
-        benchmarkDisplay: 'Benchmark 8',
-        windowNote: 'Campaign to date, illustrative',
-      },
-      {
+        value: 4,
+        valueDisplay: '4',
+        full: 8,
+        day: 61,
+        windowNote: 'Campaign to date at day 61, illustrative',
+      }),
+      rateMetric({
         label: 'Follow-up speed',
-        campaignValue: 0.9,
-        campaignDisplay: '0.9 days',
-        benchmarkValue: 1,
-        benchmarkDisplay: 'Benchmark under 24 hours',
-        betterIsLower: true,
+        value: 0.9,
+        valueDisplay: '0.9 days',
+        ...FOLLOW_UP_BENCHMARK,
         windowNote: 'Median across campaign, illustrative',
-      },
-      {
+      }),
+      rateMetric({
         label: 'Inspection actions',
-        campaignValue: 2,
-        campaignDisplay: '2',
-        benchmarkValue: 2.7,
-        benchmarkDisplay: 'Benchmark 2.7 per week',
+        value: 2,
+        valueDisplay: '2',
+        ...INSPECTION_ACTION_BENCHMARK,
         windowNote: 'This week, illustrative',
-      },
+      }),
     ],
   },
   feedback: {
     title: 'What buyers are actually saying',
     subtitle:
-      'REA and Domain can’t see this — it only exists in agent notes from inspections and enquiries.',
+      'REA and Domain cannot see this. It only exists in agent notes from inspections and enquiries.',
     basis: 'Share of 38 logged feedback notes mentioning each theme.',
     themes: [
       {
@@ -713,7 +931,7 @@ const mathoura: CampaignRecord = {
         label: 'Owners-corporation queries',
         pct: 21,
         countNote: '8 of 38 notes',
-        note: 'Fees and works schedule — answerable in the listing copy.',
+        note: 'Fees and works schedule, answerable in the listing copy.',
       },
       {
         label: 'Layout',
@@ -722,10 +940,10 @@ const mathoura: CampaignRecord = {
         note: 'Second bedroom size raised twice.',
       },
     ],
-    caption: 'Illustrative campaign — sample data shaped like the connected product.',
+    caption: 'Illustrative campaign. Sample data, shaped like the connected product.',
   },
   spend: {
-    title: 'What the campaign has bought — and what it hasn’t',
+    title: 'What the campaign has bought, and what it hasn’t',
     subtitle:
       'Knowing what is still on the table turns a concern into a specific, fundable next step.',
     purchasedHeading: 'Purchased',
@@ -742,7 +960,7 @@ const mathoura: CampaignRecord = {
       { label: 'Database blast', note: 'Beyond standard portal notifications' },
       { label: 'Print', note: 'Not used on this campaign' },
     ],
-    caption: 'Illustrative campaign — sample data shaped like the connected product.',
+    caption: 'Illustrative campaign. Sample data, shaped like the connected product.',
   },
   recommendations: {
     title: 'Recommended levers, by budget',
@@ -756,21 +974,21 @@ const mathoura: CampaignRecord = {
           {
             action: 'Review the guide against the two quoted comparable sales',
             evidence:
-              '18 of 38 feedback notes quote the same two sales. When buyers do the agent’s comparable analysis for them, the guide conversation is already happening — without the agent in it.',
+              '18 of 38 feedback notes quote the same two sales. When buyers do the agent’s comparable analysis for them, the guide conversation is already happening, without the agent in it.',
             impact: 'Brings the pricing conversation back inside the campaign',
             cost: 'No cost',
           },
           {
             action: 'Answer the owners-corporation questions in the listing copy',
             evidence:
-              '8 of 38 notes ask about fees and the works schedule — friction that sits directly in front of the enquiry form.',
+              '8 of 38 notes ask about fees and the works schedule, friction that sits directly in front of the enquiry form.',
             impact: 'Removes a stated reason buyers stop at the form',
             cost: 'No cost',
           },
           {
             action: 'Call the 26 OFI groups with a guide-context script',
             evidence:
-              'Attendance is above benchmark while enquiries lag — the buyers exist and have already walked through.',
+              'Attendance is above benchmark while enquiries lag. The buyers exist and have already walked through.',
             impact: 'Converts attendance into offers conversation',
             cost: 'No cost',
           },
@@ -794,7 +1012,7 @@ const mathoura: CampaignRecord = {
         label: '$3,000+',
         recommendations: [
           {
-            action: 'Hold — spend won’t fix a conversion problem',
+            action: 'Hold: spend won’t fix a conversion problem',
             evidence:
               'Traffic is above benchmark and media is complete. Until the guide question is answered, additional reach amplifies the same objection.',
             impact: 'Keeps the budget for the relaunch case if the guide holds',
@@ -844,6 +1062,11 @@ const huntingtower: CampaignRecord = {
     ],
     reportWindow: ILLUSTRATIVE_WINDOW,
   },
+  timeline: auctionTimeline({
+    currentDay: 34,
+    auctionDay: 47,
+    auctionNote: 'Saturday 8 August',
+  }),
   portal: {
     title: 'What the portals already show you',
     subtitle: 'Accurate, and this is where those reports stop.',
@@ -862,10 +1085,10 @@ const huntingtower: CampaignRecord = {
       [
         { text: 'This is what a healthy campaign looks like at day 34: ' },
         {
-          text: '14 enquiries and 6 inspection actions this week, with OFI groups tracking ahead of the cohort median',
+          text: '14 enquiries and 6 inspection actions this week, with OFI groups sitting level with the cohort median for day 34',
           strong: true,
         },
-        { text: '. Nothing needs rescuing — the job is to protect momentum into auction.' },
+        { text: '. Nothing needs rescuing; the job is to protect momentum into auction.' },
       ],
       [
         { text: 'One early signal is worth a decision this week: ' },
@@ -874,8 +1097,8 @@ const huntingtower: CampaignRecord = {
       ],
     ],
     systems:
-      'The portals agree with the CRM on this one — the value of the cross-read is confidence, not correction. Box+Dice adds the auction-date signal that no portal can see.',
-    caption: 'Illustrative campaign — sample data shaped like the connected product.',
+      'The portals agree with the CRM on this one, so the value of the cross-read is confidence, not correction. Box+Dice adds the auction-date signal that no portal can see.',
+    caption: 'Illustrative campaign. Sample data, shaped like the connected product.',
   },
   health: {
     title: 'Campaign health',
@@ -893,62 +1116,61 @@ const huntingtower: CampaignRecord = {
       { label: 'Database activity', score: 69, weightNote: 'Weighted 15%' },
       { label: 'Media completeness', score: 83, weightNote: 'Weighted 15%' },
     ],
-    caption: 'Illustrative — weighting shaped like the connected product.',
+    caption: 'Illustrative. Weighting shaped like the connected product.',
   },
   benchmark: {
     title: 'Benchmarked against campaigns that sold above reserve',
     subtitle:
       'This campaign against the median for comparable listings that closed above reserve.',
     cohortNote:
-      'Illustrative sample. In the connected product the benchmark is the above-reserve median matched on suburb, price band and product tier.',
+      'Illustrative sample. In the connected product each milestone is the above-reserve median at the same day of those campaigns, matched on suburb, price band and product tier.',
+    stageHeading: STAGE_HEADING,
     metrics: [
-      {
+      cumulativeMetric({
         label: 'Qualified enquiries',
-        campaignValue: 27,
-        campaignDisplay: '27',
-        benchmarkValue: 32,
-        benchmarkDisplay: 'Benchmark 32',
+        value: 30,
+        valueDisplay: '30',
+        full: 32,
+        day: 34,
         windowNote: 'Campaign to date at day 34, illustrative',
-      },
-      {
+      }),
+      cumulativeMetric({
         label: 'Open-for-inspection attendance',
-        campaignValue: 22,
-        campaignDisplay: '22 groups',
-        benchmarkValue: 24,
-        benchmarkDisplay: 'Benchmark 24 groups',
+        value: 23,
+        valueDisplay: '23 groups',
+        full: 24,
+        unit: ' groups',
+        day: 34,
         windowNote: 'Campaign to date at day 34, illustrative',
-      },
-      {
+      }),
+      cumulativeMetric({
         label: 'Contract requests',
-        campaignValue: 6,
-        campaignDisplay: '6',
-        benchmarkValue: 8,
-        benchmarkDisplay: 'Benchmark 8',
+        value: 7,
+        valueDisplay: '7',
+        full: 8,
+        day: 34,
         windowNote: 'Campaign to date at day 34, illustrative',
-      },
-      {
+      }),
+      rateMetric({
         label: 'Follow-up speed',
-        campaignValue: 0.8,
-        campaignDisplay: '0.8 days',
-        benchmarkValue: 1,
-        benchmarkDisplay: 'Benchmark under 24 hours',
-        betterIsLower: true,
+        value: 0.8,
+        valueDisplay: '0.8 days',
+        ...FOLLOW_UP_BENCHMARK,
         windowNote: 'Median across campaign, illustrative',
-      },
-      {
+      }),
+      rateMetric({
         label: 'Inspection actions',
-        campaignValue: 6,
-        campaignDisplay: '6',
-        benchmarkValue: 2.7,
-        benchmarkDisplay: 'Benchmark 2.7 per week',
+        value: 6,
+        valueDisplay: '6',
+        ...INSPECTION_ACTION_BENCHMARK,
         windowNote: 'This week, illustrative',
-      },
+      }),
     ],
   },
   feedback: {
     title: 'What buyers are actually saying',
     subtitle:
-      'REA and Domain can’t see this — it only exists in agent notes from inspections and enquiries.',
+      'REA and Domain cannot see this. It only exists in agent notes from inspections and enquiries.',
     basis: 'Share of 26 logged feedback notes mentioning each theme.',
     themes: [
       {
@@ -967,7 +1189,7 @@ const huntingtower: CampaignRecord = {
         label: 'Price expectation',
         pct: 12,
         countNote: '3 of 26 notes',
-        note: 'Low for this stage — the guide is landing.',
+        note: 'Low for this stage, which says the guide is landing.',
       },
       {
         label: 'Auction timing',
@@ -976,10 +1198,10 @@ const huntingtower: CampaignRecord = {
         note: 'Both query the date against school holidays.',
       },
     ],
-    caption: 'Illustrative campaign — sample data shaped like the connected product.',
+    caption: 'Illustrative campaign. Sample data, shaped like the connected product.',
   },
   spend: {
-    title: 'What the campaign has bought — and what it hasn’t',
+    title: 'What the campaign has bought, and what it hasn’t',
     subtitle:
       'Knowing what is still on the table turns a concern into a specific, fundable next step.',
     purchasedHeading: 'Purchased',
@@ -996,7 +1218,7 @@ const huntingtower: CampaignRecord = {
       { label: 'Social retargeting', note: 'Not on the campaign record' },
       { label: 'Database blast', note: 'Beyond standard portal notifications' },
     ],
-    caption: 'Illustrative campaign — sample data shaped like the connected product.',
+    caption: 'Illustrative campaign. Sample data, shaped like the connected product.',
   },
   recommendations: {
     title: 'Recommended levers, by budget',
@@ -1015,9 +1237,9 @@ const huntingtower: CampaignRecord = {
             cost: 'No cost',
           },
           {
-            action: 'Run the pre-auction call-down of all 27 qualified enquirers',
+            action: 'Run the pre-auction call-down of all 30 qualified enquirers',
             evidence:
-              'Follow-up speed is beating benchmark — the discipline exists; this points it at auction registration.',
+              'Follow-up speed is beating benchmark, so the discipline exists. This points it at auction registration.',
             impact: 'Converts a strong funnel into registered bidders',
             cost: 'No cost',
           },
@@ -1047,7 +1269,7 @@ const huntingtower: CampaignRecord = {
         label: '$3,000+',
         recommendations: [
           {
-            action: 'Hold — no case for additional spend at day 34',
+            action: 'Hold: no case for additional spend at day 34',
             evidence:
               'Every demand input is at or ahead of the cohort. Additional product here is margin for the vendor, not momentum for the campaign.',
             impact: 'Protects the vendor relationship',
@@ -1069,7 +1291,7 @@ const huntingtower: CampaignRecord = {
       {
         id: 'calldown',
         label: 'Start the pre-auction call-down',
-        detail: '27 qualified enquirers on the list.',
+        detail: '30 qualified enquirers on the list.',
       },
       {
         id: 'alert',
@@ -1092,6 +1314,11 @@ const williams: CampaignRecord = {
     ],
     reportWindow: ILLUSTRATIVE_WINDOW,
   },
+  timeline: auctionTimeline({
+    currentDay: 18,
+    auctionDay: 38,
+    auctionNote: 'Saturday 15 August',
+  }),
   portal: {
     title: 'What the portals already show you',
     subtitle: 'Accurate, and this is where those reports stop.',
@@ -1124,8 +1351,8 @@ const williams: CampaignRecord = {
       ],
     ],
     systems:
-      'The mix signal comes from Box+Dice enquiry tagging — the portals count enquiries but can’t tell an investor from an owner-occupier. Catching it at day 18 is the point of the cross-read.',
-    caption: 'Illustrative campaign — sample data shaped like the connected product.',
+      'The mix signal comes from Box+Dice enquiry tagging. The portals count enquiries but cannot tell an investor from an owner-occupier. Catching it at day 18 is the point of the cross-read.',
+    caption: 'Illustrative campaign. Sample data, shaped like the connected product.',
   },
   health: {
     title: 'Campaign health',
@@ -1143,62 +1370,61 @@ const williams: CampaignRecord = {
       { label: 'Database activity', score: 84, weightNote: 'Weighted 15%' },
       { label: 'Media completeness', score: 81, weightNote: 'Weighted 15%' },
     ],
-    caption: 'Illustrative — weighting shaped like the connected product.',
+    caption: 'Illustrative. Weighting shaped like the connected product.',
   },
   benchmark: {
     title: 'Benchmarked against campaigns that sold above reserve',
     subtitle:
       'This campaign against the median for comparable listings that closed above reserve.',
     cohortNote:
-      'Illustrative sample. Cohort medians are full-campaign figures — at day 18 the useful read is trajectory, not gap.',
+      'Illustrative sample. At day 18 the full-campaign median is the wrong test, so each metric is read against the day-18 milestone of the same cohort, with the later milestones shown so the trajectory is visible.',
+    stageHeading: STAGE_HEADING,
     metrics: [
-      {
+      cumulativeMetric({
         label: 'Qualified enquiries',
-        campaignValue: 9,
-        campaignDisplay: '9',
-        benchmarkValue: 32,
-        benchmarkDisplay: 'Full-campaign benchmark 32',
+        value: 21,
+        valueDisplay: '21',
+        full: 32,
+        day: 18,
         windowNote: 'Campaign to date at day 18, illustrative',
-      },
-      {
+      }),
+      cumulativeMetric({
         label: 'Open-for-inspection attendance',
-        campaignValue: 8,
-        campaignDisplay: '8 groups',
-        benchmarkValue: 24,
-        benchmarkDisplay: 'Full-campaign benchmark 24 groups',
+        value: 16,
+        valueDisplay: '16 groups',
+        full: 24,
+        unit: ' groups',
+        day: 18,
         windowNote: 'Campaign to date at day 18, illustrative',
-      },
-      {
+      }),
+      cumulativeMetric({
         label: 'Contract requests',
-        campaignValue: 1,
-        campaignDisplay: '1',
-        benchmarkValue: 8,
-        benchmarkDisplay: 'Full-campaign benchmark 8',
+        value: 5,
+        valueDisplay: '5',
+        full: 8,
+        day: 18,
         windowNote: 'Campaign to date at day 18, illustrative',
-      },
-      {
+      }),
+      rateMetric({
         label: 'Follow-up speed',
-        campaignValue: 0.7,
-        campaignDisplay: '0.7 days',
-        benchmarkValue: 1,
-        benchmarkDisplay: 'Benchmark under 24 hours',
-        betterIsLower: true,
+        value: 0.7,
+        valueDisplay: '0.7 days',
+        ...FOLLOW_UP_BENCHMARK,
         windowNote: 'Median across campaign, illustrative',
-      },
-      {
+      }),
+      rateMetric({
         label: 'Inspection actions',
-        campaignValue: 3,
-        campaignDisplay: '3',
-        benchmarkValue: 2.7,
-        benchmarkDisplay: 'Benchmark 2.7 per week',
+        value: 3,
+        valueDisplay: '3',
+        ...INSPECTION_ACTION_BENCHMARK,
         windowNote: 'This week, illustrative',
-      },
+      }),
     ],
   },
   feedback: {
     title: 'What buyers are actually saying',
     subtitle:
-      'REA and Domain can’t see this — it only exists in agent notes from inspections and enquiries.',
+      'REA and Domain cannot see this. It only exists in agent notes from inspections and enquiries.',
     basis: 'Share of 14 logged feedback notes mentioning each theme.',
     themes: [
       {
@@ -1223,13 +1449,13 @@ const williams: CampaignRecord = {
         label: 'Price expectation',
         pct: 14,
         countNote: '2 of 14 notes',
-        note: 'Low — the guide is landing at this stage.',
+        note: 'Low, which says the guide is landing at this stage.',
       },
     ],
-    caption: 'Illustrative campaign — sample data shaped like the connected product.',
+    caption: 'Illustrative campaign. Sample data, shaped like the connected product.',
   },
   spend: {
-    title: 'What the campaign has bought — and what it hasn’t',
+    title: 'What the campaign has bought, and what it hasn’t',
     subtitle:
       'Knowing what is still on the table turns a concern into a specific, fundable next step.',
     purchasedHeading: 'Purchased',
@@ -1245,7 +1471,7 @@ const williams: CampaignRecord = {
       { label: 'Social retargeting', note: 'Not on the campaign record' },
       { label: 'Twilight photography', note: 'Not on the campaign record' },
     ],
-    caption: 'Illustrative campaign — sample data shaped like the connected product.',
+    caption: 'Illustrative campaign. Sample data, shaped like the connected product.',
   },
   recommendations: {
     title: 'Recommended levers, by budget',
@@ -1265,13 +1491,13 @@ const williams: CampaignRecord = {
           },
           {
             action: 'Publish the rental appraisal with the listing',
-            evidence: 'The most common question in early enquiries — answer it once, publicly.',
+            evidence: 'The most common question in early enquiries. Answer it once, publicly.',
             impact: 'Keeps investor interest warm without more agent time',
             cost: 'No cost',
           },
           {
             action: 'Hold the follow-up cadence',
-            evidence: 'Median first response is 0.7 days — ahead of benchmark. Protect it as volume grows.',
+            evidence: 'Median first response is 0.7 days, ahead of benchmark. Protect it as volume grows.',
             impact: 'Maintains the launch advantage',
             cost: 'No cost',
           },
@@ -1295,7 +1521,7 @@ const williams: CampaignRecord = {
         label: '$3,000+',
         recommendations: [
           {
-            action: 'Hold — the launch is carrying itself',
+            action: 'Hold: the launch is carrying itself',
             evidence: 'Every input is ahead of the band at day 18. Reassess at day 40 with the mix data.',
             impact: 'Keeps powder dry for the campaigns that need it',
             cost: 'Nothing to spend',
@@ -1339,6 +1565,7 @@ const daly: CampaignRecord = {
     ],
     reportWindow: ILLUSTRATIVE_WINDOW,
   },
+  timeline: extendedTimeline(96),
   portal: {
     title: 'What the portals already show you',
     subtitle: 'Accurate, and this is where those reports stop.',
@@ -1355,19 +1582,19 @@ const daly: CampaignRecord = {
     kicker: 'Day 96 · Read across five systems',
     paragraphs: [
       [
-        { text: 'The campaign still converts — the buyers who arrive keep enquiring and inspecting — but ' },
+        { text: 'The campaign still converts. The buyers who arrive keep enquiring and inspecting, but ' },
         { text: 'weekly reach has roughly halved since the launch month', strong: true },
         { text: ', and the listing is ageing in saved searches.' },
       ],
       [
         { text: 'On today’s numbers this is on track. ' },
         { text: 'On the trend line, it needs a refresh before it stalls', strong: true },
-        { text: ' — the cheapest moment to act is before the drop shows up in enquiries.' },
+        { text: '. The cheapest moment to act is before the drop shows up in enquiries.' },
       ],
     ],
     systems:
-      'The portals report each week in isolation, so the slide only shows up when the weeks are laid side by side. Google Analytics confirms returning-visitor share is rising — the same buyers circling, fewer new ones arriving.',
-    caption: 'Illustrative campaign — sample data shaped like the connected product.',
+      'The portals report each week in isolation, so the slide only shows up when the weeks are laid side by side. Google Analytics confirms returning-visitor share is rising: the same buyers circling, fewer new ones arriving.',
+    caption: 'Illustrative campaign. Sample data, shaped like the connected product.',
   },
   health: {
     title: 'Campaign health',
@@ -1385,62 +1612,61 @@ const daly: CampaignRecord = {
       { label: 'Database activity', score: 66, weightNote: 'Weighted 15%' },
       { label: 'Media completeness', score: 84, weightNote: 'Weighted 15%' },
     ],
-    caption: 'Illustrative — weighting shaped like the connected product.',
+    caption: 'Illustrative. Weighting shaped like the connected product.',
   },
   benchmark: {
     title: 'Benchmarked against campaigns that sold above reserve',
     subtitle:
       'This campaign against the median for comparable listings that closed above reserve.',
     cohortNote:
-      'Illustrative sample. In the connected product the benchmark is the above-reserve median matched on suburb, price band and product tier.',
+      'Illustrative sample. In the connected product each milestone is the above-reserve median at the same day of those campaigns, matched on suburb, price band and product tier.',
+    stageHeading: STAGE_HEADING,
     metrics: [
-      {
+      cumulativeMetric({
         label: 'Qualified enquiries',
-        campaignValue: 24,
-        campaignDisplay: '24',
-        benchmarkValue: 32,
-        benchmarkDisplay: 'Benchmark 32',
-        windowNote: 'Campaign to date, illustrative',
-      },
-      {
+        value: 29,
+        valueDisplay: '29',
+        full: 32,
+        day: 96,
+        windowNote: 'Campaign to date at day 96, illustrative',
+      }),
+      cumulativeMetric({
         label: 'Open-for-inspection attendance',
-        campaignValue: 19,
-        campaignDisplay: '19 groups',
-        benchmarkValue: 24,
-        benchmarkDisplay: 'Benchmark 24 groups',
-        windowNote: 'Campaign to date, illustrative',
-      },
-      {
+        value: 22,
+        valueDisplay: '22 groups',
+        full: 24,
+        unit: ' groups',
+        day: 96,
+        windowNote: 'Campaign to date at day 96, illustrative',
+      }),
+      cumulativeMetric({
         label: 'Contract requests',
-        campaignValue: 5,
-        campaignDisplay: '5',
-        benchmarkValue: 8,
-        benchmarkDisplay: 'Benchmark 8',
-        windowNote: 'Campaign to date, illustrative',
-      },
-      {
+        value: 5,
+        valueDisplay: '5',
+        full: 8,
+        day: 96,
+        windowNote: 'Campaign to date at day 96, illustrative',
+      }),
+      rateMetric({
         label: 'Follow-up speed',
-        campaignValue: 1.4,
-        campaignDisplay: '1.4 days',
-        benchmarkValue: 1,
-        benchmarkDisplay: 'Benchmark under 24 hours',
-        betterIsLower: true,
+        value: 1.4,
+        valueDisplay: '1.4 days',
+        ...FOLLOW_UP_BENCHMARK,
         windowNote: 'Median across campaign, illustrative',
-      },
-      {
+      }),
+      rateMetric({
         label: 'Inspection actions',
-        campaignValue: 2,
-        campaignDisplay: '2',
-        benchmarkValue: 2.7,
-        benchmarkDisplay: 'Benchmark 2.7 per week',
+        value: 2,
+        valueDisplay: '2',
+        ...INSPECTION_ACTION_BENCHMARK,
         windowNote: 'This week, illustrative',
-      },
+      }),
     ],
   },
   feedback: {
     title: 'What buyers are actually saying',
     subtitle:
-      'REA and Domain can’t see this — it only exists in agent notes from inspections and enquiries.',
+      'REA and Domain cannot see this. It only exists in agent notes from inspections and enquiries.',
     basis: 'Share of 33 logged feedback notes mentioning each theme.',
     themes: [
       {
@@ -1468,10 +1694,10 @@ const daly: CampaignRecord = {
         note: 'Answered well at inspections; not in the copy.',
       },
     ],
-    caption: 'Illustrative campaign — sample data shaped like the connected product.',
+    caption: 'Illustrative campaign. Sample data, shaped like the connected product.',
   },
   spend: {
-    title: 'What the campaign has bought — and what it hasn’t',
+    title: 'What the campaign has bought, and what it hasn’t',
     subtitle:
       'Knowing what is still on the table turns a concern into a specific, fundable next step.',
     purchasedHeading: 'Purchased',
@@ -1488,7 +1714,7 @@ const daly: CampaignRecord = {
       { label: 'Social retargeting', note: 'Not on the campaign record' },
       { label: 'Database blast', note: 'Beyond standard portal notifications' },
     ],
-    caption: 'Illustrative campaign — sample data shaped like the connected product.',
+    caption: 'Illustrative campaign. Sample data, shaped like the connected product.',
   },
   recommendations: {
     title: 'Recommended levers, by budget',
@@ -1509,7 +1735,7 @@ const daly: CampaignRecord = {
           {
             action: 'Answer the traffic-noise question in the copy',
             evidence:
-              '4 of 33 notes raise it, and it is being answered well in person — put the answer where new buyers read first.',
+              '4 of 33 notes raise it, and it is being answered well in person. Put the answer where new buyers read first.',
             impact: 'Removes a quiet objection for buyers who never enquire',
             cost: 'No cost',
           },
@@ -1547,7 +1773,7 @@ const daly: CampaignRecord = {
           {
             action: 'Relaunch package for spring',
             evidence:
-              'If the refresh doesn’t move reach within three weeks, a coordinated relaunch — new creative, new lead line, repositioned guide — beats a slow fade on every cohort read.',
+              'If the refresh doesn’t move reach within three weeks, a coordinated relaunch, with new creative, a new lead line and a repositioned guide, beats a slow fade on every cohort read.',
             impact: 'Resets the campaign ahead of the spring market',
             cost: 'Estimated $3,400 plus agency time',
           },
@@ -1615,7 +1841,7 @@ export const fixture: FixtureData = {
         enquiriesWeek: '8', // [REA-weekly]
         healthDisplay: '39',
         health: 39,
-        status: 'Needs review — zero inspection actions last week',
+        status: 'Needs review: zero inspection actions last week',
         tone: 'bad',
         isWorkedExample: true,
       },
@@ -1626,7 +1852,7 @@ export const fixture: FixtureData = {
         enquiriesWeek: '9',
         healthDisplay: '57',
         health: 57,
-        status: 'Watch — follow-up slipping past 24 hours',
+        status: 'Watch: follow-up slipping past 24 hours',
         tone: 'warn',
       },
       {
@@ -1636,7 +1862,7 @@ export const fixture: FixtureData = {
         enquiriesWeek: '11',
         healthDisplay: '64',
         health: 64,
-        status: 'Watch — enquiry conversion below cohort',
+        status: 'Watch: enquiry conversion below cohort',
         tone: 'warn',
       },
       {
@@ -1671,7 +1897,7 @@ export const fixture: FixtureData = {
       },
     ],
     caption:
-      '102/380 Albert Street is the worked example, built on its real REA report. The other campaigns are illustrative — they show how a full portfolio reads once the systems are connected.',
+      '102/380 Albert Street is the worked example, built on its real REA report. The other campaigns are illustrative. They show how a full portfolio reads once the systems are connected.',
   },
 
   campaigns: {
@@ -1686,37 +1912,37 @@ export const fixture: FixtureData = {
   sources: {
     title: 'Data connections',
     subtitle:
-      'Five external systems, plus Marshall White’s own campaign history. “Available now” means integrable on Marshall White’s authority — nothing in this demonstration is connected yet, and every modelled layer is marked against its source here.',
+      'Five external systems, plus Marshall White’s own campaign history. “Available now” means integrable on Marshall White’s authority. Nothing in this demonstration is connected yet, and every modelled layer is marked against its source here.',
     columns: ['Source', 'Provides', 'Status'],
     rows: [
       {
         source: 'Box+Dice CRM',
         provides: 'Enquiries, inspection logs, buyer feedback, follow-up timing',
-        status: 'Available now — REST API. Feedback layers are modelled.',
+        status: 'Available now via REST API. Feedback layers are modelled.',
         tone: 'neutral',
       },
       {
         source: 'Domain Skylight',
         provides: 'Views, saves, impressions, enquiries, suburb benchmarks',
-        status: 'Available now — partner API',
+        status: 'Available now via a partner API',
         tone: 'neutral',
       },
       {
         source: 'Google Analytics',
         provides: 'Marshall White site sessions and dwell time',
-        status: 'Available now — GA4',
+        status: 'Available now via GA4',
         tone: 'neutral',
       },
       {
         source: 'Red HQ',
         provides: 'Spend by channel, product tier purchased',
-        status: 'Available now — read confirmed, write to be confirmed. Purchase layers are modelled.',
+        status: 'Available now: read confirmed, write to be confirmed. Purchase layers are modelled.',
         tone: 'neutral',
       },
       {
         source: 'REA Ignite',
         provides: 'Views, impressions, enquiries, session duration',
-        status: 'Access pending — no public API; weekly PDF export today',
+        status: 'Access pending. No public API; weekly PDF export today',
         tone: 'warn',
       },
       {

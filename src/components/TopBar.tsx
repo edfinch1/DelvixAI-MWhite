@@ -1,7 +1,8 @@
 import { ChevronLeft } from 'lucide-react';
-import type { AppChrome, NavSection } from '../types';
+import type { AppChrome, CampaignTimeline, NavSection } from '../types';
 import { C, S, T, hairline } from '../tokens';
 import { useViewport } from '../hooks/useViewport';
+import CampaignProgress from './CampaignProgress';
 
 interface Props {
   chrome: AppChrome;
@@ -9,6 +10,7 @@ interface Props {
   section: string;
   campaignAddress: string;
   reportWindow: string;
+  timeline?: CampaignTimeline;
   onPortfolio: () => void;
   onSection: (id: string) => void;
 }
@@ -62,6 +64,7 @@ export default function TopBar({
   section,
   campaignAddress,
   reportWindow,
+  timeline,
   onPortfolio,
   onSection,
 }: Props) {
@@ -150,6 +153,7 @@ export default function TopBar({
       {isNarrow && route === 'campaign' && (
         <MobileTabs sections={chrome.navSections} section={section} onSection={onSection} />
       )}
+      {route === 'campaign' && timeline && <CampaignProgress timeline={timeline} />}
     </div>
   );
 }

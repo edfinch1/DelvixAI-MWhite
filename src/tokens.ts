@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 
-// Marshall White design tokens. See DESIGN.md — binding.
+// Marshall White design tokens. See DESIGN.md, which is binding.
 // Navy sampled from the REA report header bar; confirm against MW brand guide.
 
 export const C = {
@@ -20,13 +20,13 @@ export const C = {
   onInk: '#FFFFFF',
   onInkMuted: 'rgba(255,255,255,0.68)',
 
-  // Signal — data state only, never decoration
+  // Signal. Data state only, never decoration.
   good: '#1F6F43',
   warn: '#B07A1E',
   bad: '#A32B2B',
   neutral: '#8A939C',
 
-  // Accent — navy, same as ink. No gold, no teal.
+  // Accent. Navy, same as ink. No gold, no teal.
   accent: '#0B1B2B',
 } as const;
 

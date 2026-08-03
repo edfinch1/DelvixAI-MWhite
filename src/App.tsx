@@ -170,6 +170,7 @@ export default function App() {
           section={section}
           campaignAddress={record.header.address}
           reportWindow={record.header.reportWindow}
+          timeline={record.timeline}
           onPortfolio={goPicker}
           onSection={goSection}
         />
