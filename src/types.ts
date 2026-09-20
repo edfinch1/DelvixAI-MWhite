@@ -173,6 +173,45 @@ export interface ActionsBlock {
   items: ActionItem[];
 }
 
+export interface TeamMember {
+  id: string;
+  name: string;
+  firstName: string;
+  patch: string; // 'Armadale and Kooyong'
+}
+
+// One line of evidence behind a task: which system saw it, and what it saw.
+export interface TaskEvidence {
+  system: string; // 'Box+Dice CRM', 'REA Ignite', ...
+  fact: string;
+}
+
+export type TaskUrgency = 'now' | 'today' | 'week';
+
+export interface WorkTask {
+  id: string;
+  campaignId: string;
+  campaignAddress: string;
+  assigneeId: string;
+  urgency: TaskUrgency;
+  urgencyLabel: string; // 'Do now', 'Today', 'This week'
+  action: string;
+  detail: string;
+  evidence: TaskEvidence[];
+  rule: string; // the trigger, written as a plain sentence
+  raised: string; // 'Raised by the 6:00am read'
+}
+
+export interface WorklistBlock {
+  title: string;
+  subtitle: string;
+  allLabel: string; // filter label for the whole team
+  raisedNote: string;
+  tasks: WorkTask[];
+  caption: string;
+  notifyPrefix: string; // 'Email this to'
+}
+
 export interface SourceRow {
   source: string;
   provides: string;
@@ -253,6 +292,8 @@ export interface CampaignRecord {
 export interface FixtureData {
   app: AppChrome;
   portfolio: PortfolioBlock;
+  team: TeamMember[];
+  worklist: WorklistBlock;
   campaigns: Record<string, CampaignRecord>;
   sources: SourcesBlock;
   footer: string;
