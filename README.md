@@ -1,10 +1,18 @@
 # Marshall White Campaign Intelligence — demo
 
-A fully static demonstration built for the Tuesday Marshall White meeting,
-presented as the operating system an agent would live in: a portfolio of
-campaigns, one campaign opened as a workspace (Overview, Benchmarks, Buyer
-feedback, Spend and levers, Actions, Data connections). No backend, no auth,
-no API calls — every figure and sentence lives in `src/data/campaign.ts`.
+A demonstration built for the Marshall White meeting, presented as the
+operating system an agent would live in: a morning work queue ("Today"), a
+portfolio of campaigns, and each campaign opened as a workspace (Overview,
+Benchmarks, Buyer feedback, Spend and levers, Actions, Data connections).
+Static apart from one serverless endpoint (`api/notify.ts`) — every figure
+and sentence lives in `src/data/campaign.ts` and `src/data/worklist.ts`.
+
+The landing screen is the **Today queue**: the tasks the five systems raised
+overnight, each with an assignee, the evidence lines that fired it (tagged by
+source system), the rule that raised it, and an "Email this to <agent>"
+button that delivers the task as a real email via `api/notify.ts`. Figures in
+the queue never introduce new numbers; each one already appears inside its
+campaign workspace. The team is illustrative apart from the signed-in agent.
 
 The worked example is **102/380 Albert Street, East Melbourne**, built on its
 real REA report. Every other campaign opens the same workspace on entirely
@@ -59,9 +67,28 @@ table means integrable on Marshall White's authority, not integrated.
 
 ```
 npm install
-npm run dev      # local
-npm run build    # outputs dist/ — deployed to Netlify from main
+npm run dev      # local UI; /api/notify is not served (button reports "not set up")
+npm run build    # outputs dist/
 ```
+
+Deployed on **Vercel** (project `delvix-ai-m-white`, scope `edfinch1s-projects`),
+Production auto-deploys from `main`. `api/notify.ts` ships as a Vercel
+serverless function.
+
+### Notification delivery
+
+`POST /api/notify` emails a Today-queue task. Configure in the Vercel
+project's environment variables:
+
+| Variable | Purpose |
+|---|---|
+| `GMAIL_USER` | Sending Gmail address |
+| `GMAIL_APP_PASSWORD` | Gmail app password (account needs 2FA) |
+| `NOTIFY_TO` | Recipient; defaults to `GMAIL_USER` |
+| `SLACK_WEBHOOK_URL` | Optional; also posts the task to a Slack channel |
+
+With nothing configured the endpoint answers `{ ok: true, simulated: true }`
+and the UI shows "Email delivery not set up" instead of failing.
 
 Stack: React 18 + Vite + TypeScript, inline styles from `src/tokens.ts`,
 Inter via Fontsource, hand-rolled SVG charts, `useState` only.

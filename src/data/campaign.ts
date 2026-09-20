@@ -5,6 +5,7 @@ import type {
   FixtureData,
   Tone,
 } from '../types';
+import { team, worklist } from './worklist';
 
 // ALL demo content lives here. Components render this and nothing else.
 //
@@ -1964,6 +1965,9 @@ export const fixture: FixtureData = {
     caption:
       '102/380 Albert Street is the worked example, built on its real REA report. The other campaigns are illustrative. They show how a full portfolio reads once the systems are connected.',
   },
+
+  team,
+  worklist,
 
   campaigns: {
     albert,

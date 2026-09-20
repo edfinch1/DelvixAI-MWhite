@@ -154,6 +154,8 @@ export default function App() {
       <Picker
         chrome={fixture.app}
         portfolio={fixture.portfolio}
+        worklist={fixture.worklist}
+        team={fixture.team}
         footer={fixture.footer}
         onOpen={openCampaign}
       />
