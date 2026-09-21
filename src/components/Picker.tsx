@@ -122,7 +122,7 @@ export default function Picker({
       >
         {view === 'today' ? (
           <div>
-            <h1 style={{ ...T.sectionHeading, color: C.text }}>{worklist.title}</h1>
+            <h1 style={{ ...T.pageTitle, color: C.text }}>{worklist.title}</h1>
             <p style={{ ...T.body, color: C.textMuted, marginTop: S.s, maxWidth: 620 }}>
               {worklist.subtitle}
             </p>

@@ -62,9 +62,10 @@ function Fact({ text }: { text: string }) {
     <span style={{ ...T.caption, color: C.text }}>
       <span
         style={{
+          fontSize: 15,
           fontWeight: 600,
           fontVariantNumeric: 'tabular-nums',
-          letterSpacing: '-0.01em',
+          letterSpacing: '-0.015em',
         }}
       >
         {m[1]}
@@ -538,7 +539,7 @@ function SentLog({ copy, records }: { copy: WorklistBlock['sentLog']; records: S
           borderBottom: `1px solid ${C.lineStrong}`,
         }}
       >
-        <h2 style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.015em', color: C.text }}>
+        <h2 style={{ fontSize: 23, fontWeight: 600, letterSpacing: '-0.02em', color: C.text }}>
           {copy.title}
         </h2>
         <span style={{ ...T.label, color: C.textFaint, fontVariantNumeric: 'tabular-nums' }}>
@@ -721,7 +722,7 @@ export default function Worklist({ data, team, campaignRecords, onOpenCampaign }
                 borderBottom: `1px solid ${C.lineStrong}`,
               }}
             >
-              <h2 style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.015em', color: C.text }}>
+              <h2 style={{ fontSize: 23, fontWeight: 600, letterSpacing: '-0.02em', color: C.text }}>
                 {band.label}
               </h2>
               <span style={{ ...T.label, color: C.textFaint, fontVariantNumeric: 'tabular-nums' }}>
