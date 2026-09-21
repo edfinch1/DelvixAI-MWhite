@@ -108,6 +108,9 @@ export default function Picker({ chrome, portfolio, worklist, team, footer, onOp
             <p style={{ ...T.body, color: C.textMuted, marginTop: S.s, maxWidth: 620 }}>
               {worklist.subtitle}
             </p>
+            <p style={{ ...T.caption, color: C.textFaint, marginTop: S.xs }}>
+              {worklist.raisedNote}
+            </p>
             <div style={{ marginTop: S.l }}>
               <Worklist data={worklist} team={team} onOpenCampaign={onOpen} />
             </div>

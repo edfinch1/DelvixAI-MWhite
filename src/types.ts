@@ -221,7 +221,6 @@ export interface WorkTask {
   contacts?: TaskContact[];
   contactsSource?: string; // 'Box+Dice CRM', so the list can carry its origin
   rule: string; // the trigger, written as a plain sentence
-  raised: string; // 'Raised by the 6:00am read'
 }
 
 export interface BudgetBandMeta {

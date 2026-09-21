@@ -122,7 +122,6 @@ export const worklist: WorklistBlock = {
         { name: 'Robert Eastwood', line: 'Enquired 26 Jul. Local, asked about the north aspect.' },
       ],
       rule: 'Raised when a week records five or more enquiries and no inspection action.',
-      raised: 'Raised by the 6:00am read',
     },
     {
       id: 'moorhouse-reply',
@@ -148,7 +147,6 @@ export const worklist: WorklistBlock = {
         { name: 'Sam Whitaker', line: 'Waiting 1 day. Repeat enquirer from the first week.' },
       ],
       rule: 'Raised when any enquiry waits past 24 hours without a reply.',
-      raised: 'Raised by the 6:00am read',
     },
     {
       id: 'moorhouse-ofi-notes',
@@ -165,7 +163,6 @@ export const worklist: WorklistBlock = {
         { system: 'Box+Dice CRM', fact: 'Auction is six days out, Saturday 1 August' },
       ],
       rule: 'Raised when inspection notes are still missing 48 hours after the open.',
-      raised: 'Raised by the 6:00am read',
     },
     {
       id: 'albert-vendor-price',
@@ -182,7 +179,6 @@ export const worklist: WorklistBlock = {
         { system: 'REA Ignite', fact: '322 days on site, 287 past the standard cycle' },
       ],
       rule: 'Raised when one feedback theme passes half of logged notes.',
-      raised: 'Raised by the 6:00am read',
     },
     {
       id: 'mathoura-guide',
@@ -199,7 +195,6 @@ export const worklist: WorklistBlock = {
         { system: 'Google Analytics', fact: 'Listing page dwell holds at 2:24, so interest is real and the blocker is price' },
       ],
       rule: 'Raised when conversion trails the cohort for two consecutive weeks.',
-      raised: 'Raised by the 6:00am read',
     },
     {
       id: 'huntingtower-calldown',
@@ -216,7 +211,6 @@ export const worklist: WorklistBlock = {
         { system: 'Marshall White historical', fact: 'Call-downs land best inside the final fortnight' },
       ],
       rule: 'Raised 14 days before auction day.',
-      raised: 'Raised by the 6:00am read',
     },
     {
       id: 'williams-appraisal',
@@ -232,7 +226,6 @@ export const worklist: WorklistBlock = {
         { system: 'Box+Dice CRM', fact: '6 of 14 enquiries asked about rental return' },
       ],
       rule: 'Raised when one question recurs in a third of enquiries.',
-      raised: 'Raised by the 6:00am read',
     },
     {
       id: 'daly-finance',
@@ -254,7 +247,6 @@ export const worklist: WorklistBlock = {
         { name: 'Chris Donnelly', line: 'Approval pending 9 days. Broker changed lender last week.' },
       ],
       rule: 'Raised when a warm buyer goes seven days without contact.',
-      raised: 'Raised by the 6:00am read',
     },
     {
       id: 'albert-refresh',
@@ -275,7 +267,6 @@ export const worklist: WorklistBlock = {
         { system: 'Red HQ', fact: 'No refresh product purchased in the campaign to date. Modelled.' },
       ],
       rule: 'Raised when a campaign passes the standard cycle with unused media levers.',
-      raised: 'Raised by the 6:00am read',
     },
     {
       id: 'daly-retarget',
@@ -295,7 +286,6 @@ export const worklist: WorklistBlock = {
         { system: 'Red HQ', fact: 'No retargeting product on the record, and the video already exists. Modelled.' },
       ],
       rule: 'Raised when a campaign passes 90 days with original media and an untouched viewer pool.',
-      raised: 'Raised by the 6:00am read',
     },
     {
       id: 'albert-3d',
@@ -315,7 +305,6 @@ export const worklist: WorklistBlock = {
         { system: 'Marshall White historical', fact: 'Apartment campaigns carrying a 3D tour averaged 1.4 times the inspection attendance. Modelled.' },
       ],
       rule: 'Raised when a campaign passes the standard cycle with a whole media format unused.',
-      raised: 'Raised by the 6:00am read',
     },
     {
       id: 'daly-relaunch',
@@ -335,7 +324,6 @@ export const worklist: WorklistBlock = {
         { system: 'Marshall White historical', fact: 'A coordinated relaunch beats a slow fade on every cohort read. Modelled.' },
       ],
       rule: 'Raised when a campaign passes 90 days and the cohort read favours a reset over an extension.',
-      raised: 'Raised by the 6:00am read',
     },
   ],
 };

@@ -246,15 +246,30 @@ function TaskRow({
 
         <div style={{ marginTop: S.m }}>
           {task.evidence.map((e) => (
-            <div key={e.fact} style={{ ...T.caption, color: C.textMuted, marginTop: 2 }}>
-              <span style={{ fontWeight: 500, color: C.text }}>{e.system}</span>
-              {': '}
-              {e.fact}
+            <div
+              key={e.fact}
+              style={{
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                gap: isMobile ? 0 : S.m,
+                marginTop: isMobile ? S.s : 3,
+              }}
+            >
+              <span
+                style={{
+                  ...T.label,
+                  color: C.textFaint,
+                  width: isMobile ? undefined : 108,
+                  flexShrink: 0,
+                  paddingTop: isMobile ? 0 : 1,
+                }}
+              >
+                {e.system}
+              </span>
+              <span style={{ ...T.caption, color: C.text }}>{e.fact}</span>
             </div>
           ))}
-          <div style={{ ...T.caption, color: C.textFaint, marginTop: S.s }}>
-            {task.rule} {task.raised}.
-          </div>
+          <div style={{ ...T.caption, color: C.textFaint, marginTop: S.s }}>{task.rule}</div>
         </div>
 
         <ContactList task={task} />
@@ -274,16 +289,18 @@ function TaskRow({
         <div style={{ textAlign: isMobile ? 'left' : 'right' }}>
           <div style={{ ...T.caption, fontWeight: 500, color: C.text }}>{member.name}</div>
           <div style={{ ...T.label, color: C.textFaint }}>{member.patch}</div>
-          <div
-            style={{
-              ...T.label,
-              color: C.text,
-              marginTop: S.s,
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {task.budget.cost}
-          </div>
+          {task.budget.band !== 'none' && (
+            <div
+              style={{
+                ...T.label,
+                color: C.text,
+                marginTop: S.s,
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {task.budget.cost}
+            </div>
+          )}
         </div>
         <NotifyButton
           task={task}
@@ -374,7 +391,15 @@ function CampaignRail({
   onChange: (id: string) => void;
 }) {
   return (
-    <aside style={{ width: 208, flexShrink: 0 }}>
+    <aside
+      style={{
+        width: 208,
+        flexShrink: 0,
+        position: 'sticky',
+        top: S.l,
+        alignSelf: 'flex-start',
+      }}
+    >
       <div
         style={{
           ...T.label,
