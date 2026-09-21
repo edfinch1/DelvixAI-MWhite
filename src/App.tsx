@@ -156,6 +156,7 @@ export default function App() {
         portfolio={fixture.portfolio}
         worklist={fixture.worklist}
         team={fixture.team}
+        campaigns={fixture.campaigns}
         footer={fixture.footer}
         onOpen={openCampaign}
       />

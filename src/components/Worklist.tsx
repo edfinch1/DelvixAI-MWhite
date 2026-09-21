@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
 import type {
   BudgetBand,
+  CampaignRecord,
+  ListingPhoto,
   SentRecord,
   TeamMember,
   WorklistBlock,
@@ -14,8 +16,21 @@ import { useViewport } from '../hooks/useViewport';
 interface Props {
   data: WorklistBlock;
   team: TeamMember[];
+  campaignRecords: Record<string, CampaignRecord>;
   onOpenCampaign: (id: string) => void;
 }
+
+// The queue is a list of properties before it is a list of tasks, and this is
+// a business that sells on photography. The gallery orders photography first
+// and plans last, so the first frame is always a room, never a drawing.
+//
+// The row draws a 200px thumbnail rather than the listing photograph itself:
+// the full frames run a third of a megabyte each, which is a slow first paint
+// to paint eighty pixels with. Alt text still comes from the gallery, so the
+// description stays tied to the real photograph.
+const THUMB_W = 80;
+const THUMB_H = 56;
+const thumbFor = (campaignId: string) => `/photos/thumbs/${campaignId}.jpg`;
 
 const URGENCY_TONE: Record<WorkTask['urgency'], Tone> = {
   now: 'bad',
@@ -195,12 +210,14 @@ function TaskRow({
   task,
   member,
   data,
+  hero,
   onOpenCampaign,
   onSent,
   isMobile,
 }: {
   task: WorkTask;
   member: TeamMember;
+  hero?: ListingPhoto;
   data: WorklistBlock;
   onOpenCampaign: (id: string) => void;
   onSent: (task: WorkTask, member: TeamMember) => void;
@@ -216,6 +233,31 @@ function TaskRow({
         padding: `${S.base + S.xs}px ${S.base}px`,
       }}
     >
+      {hero && !isMobile && (
+        <button
+          onClick={() => onOpenCampaign(task.campaignId)}
+          style={{
+            width: THUMB_W,
+            height: THUMB_H,
+            flexShrink: 0,
+            padding: 0,
+            border: hairline,
+            borderRadius: RADIUS,
+            overflow: 'hidden',
+            background: C.paperAlt,
+            cursor: 'pointer',
+            marginTop: 2,
+          }}
+        >
+          <img
+            src={thumbFor(task.campaignId)}
+            alt={hero.alt}
+            loading="lazy"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        </button>
+      )}
+
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: S.m, flexWrap: 'wrap' }}>
           <span style={{ ...T.label, color: toneColor(URGENCY_TONE[task.urgency]) }}>
@@ -515,7 +557,7 @@ function SentLog({ copy, records }: { copy: WorklistBlock['sentLog']; records: S
 }
 
 
-export default function Worklist({ data, team, onOpenCampaign }: Props) {
+export default function Worklist({ data, team, campaignRecords, onOpenCampaign }: Props) {
   const { isMobile, isNarrow } = useViewport();
   const [agent, setAgent] = useState('all');
   const [campaign, setCampaign] = useState('all');
@@ -666,6 +708,7 @@ export default function Worklist({ data, team, onOpenCampaign }: Props) {
                       task={task}
                       member={member}
                       data={data}
+                      hero={campaignRecords[task.campaignId]?.gallery?.photos[0]}
                       onOpenCampaign={onOpenCampaign}
                       onSent={recordSend}
                       isMobile={isMobile}

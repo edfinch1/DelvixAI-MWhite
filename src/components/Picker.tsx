@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import type { AppChrome, PortfolioBlock, TeamMember, WorklistBlock } from '../types';
+import type {
+  AppChrome,
+  CampaignRecord,
+  PortfolioBlock,
+  TeamMember,
+  WorklistBlock,
+} from '../types';
 import { C, S, T, MAX_WIDTH, SHELL_WIDTH } from '../tokens';
 import { useViewport } from '../hooks/useViewport';
 import Portfolio from './Portfolio';
@@ -10,11 +16,20 @@ interface Props {
   portfolio: PortfolioBlock;
   worklist: WorklistBlock;
   team: TeamMember[];
+  campaigns: Record<string, CampaignRecord>;
   footer: string;
   onOpen: (id: string) => void;
 }
 
-export default function Picker({ chrome, portfolio, worklist, team, footer, onOpen }: Props) {
+export default function Picker({
+  chrome,
+  portfolio,
+  worklist,
+  team,
+  campaigns,
+  footer,
+  onOpen,
+}: Props) {
   const { isMobile, isNarrow } = useViewport();
   const [view, setView] = useState<'today' | 'campaigns'>('today');
   const gutter = isMobile ? S.l : S.xl;
@@ -115,7 +130,12 @@ export default function Picker({ chrome, portfolio, worklist, team, footer, onOp
               {worklist.raisedNote}
             </p>
             <div style={{ marginTop: S.l }}>
-              <Worklist data={worklist} team={team} onOpenCampaign={onOpen} />
+              <Worklist
+                data={worklist}
+                team={team}
+                campaignRecords={campaigns}
+                onOpenCampaign={onOpen}
+              />
             </div>
           </div>
         ) : (
