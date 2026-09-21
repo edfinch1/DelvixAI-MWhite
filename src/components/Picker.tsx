@@ -62,8 +62,20 @@ export default function Picker({ chrome, portfolio, worklist, team, footer, onOp
             </span>
             <span style={{ ...T.caption, color: C.onInkMuted }}>{chrome.productName}</span>
           </span>
-          <span style={{ ...T.caption, color: C.onInkMuted }}>
-            {chrome.agentLine} · {chrome.officeLine}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: S.m }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, ...T.label }}>
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: C.goodOnInk,
+                  display: 'inline-block',
+                }}
+              />
+              {chrome.syncedLabel}
+            </span>
+            <span style={{ ...T.caption, color: C.onInkMuted }}>{chrome.syncLine}</span>
           </span>
         </div>
       </header>

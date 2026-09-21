@@ -240,7 +240,7 @@ const albert: CampaignRecord = {
   header: {
     address: '102/380 Albert Street, East Melbourne',
     meta: [
-      { label: 'Agent', value: 'Ranko Cvjeticanin, Stonnington' },
+      { label: 'Agent', value: 'Ranko Cvjeticanin, East Melbourne' },
       { label: 'Listing', value: 'Premiere tier' }, // [REA-campaign]
       { label: 'Listed', value: '10 September 2025' },
       { label: 'On site', value: '322 days' }, // [REA-campaign]
@@ -552,7 +552,7 @@ const moorhouse: CampaignRecord = {
   header: {
     address: '7 Moorhouse Street, Armadale',
     meta: [
-      { label: 'Agent', value: 'Ranko Cvjeticanin, Stonnington' },
+      { label: 'Agent', value: 'Annabel Hartley, Armadale' },
       { label: 'Listing', value: 'Highlight tier' },
       { label: 'Listed', value: '9 June 2026' },
       { label: 'On site', value: '47 days' },
@@ -830,7 +830,7 @@ const mathoura: CampaignRecord = {
   header: {
     address: '4/27 Mathoura Road, Toorak',
     meta: [
-      { label: 'Agent', value: 'Ranko Cvjeticanin, Stonnington' },
+      { label: 'Agent', value: 'Tom Whelan, Toorak' },
       { label: 'Listing', value: 'Premiere tier' },
       { label: 'Listed', value: '26 May 2026' },
       { label: 'On site', value: '61 days' },
@@ -1094,7 +1094,7 @@ const huntingtower: CampaignRecord = {
   header: {
     address: '12 Huntingtower Road, Armadale',
     meta: [
-      { label: 'Agent', value: 'Ranko Cvjeticanin, Stonnington' },
+      { label: 'Agent', value: 'Annabel Hartley, Armadale' },
       { label: 'Listing', value: 'Premiere tier' },
       { label: 'Listed', value: '22 June 2026' },
       { label: 'On site', value: '34 days' },
@@ -1358,7 +1358,7 @@ const williams: CampaignRecord = {
   header: {
     address: '3/158 Williams Road, Prahran',
     meta: [
-      { label: 'Agent', value: 'Ranko Cvjeticanin, Stonnington' },
+      { label: 'Agent', value: 'Priya Nair, Prahran and South Yarra' },
       { label: 'Listing', value: 'Highlight tier' },
       { label: 'Listed', value: '8 July 2026' },
       { label: 'On site', value: '18 days' },
@@ -1618,7 +1618,7 @@ const daly: CampaignRecord = {
   header: {
     address: '216/8 Daly Street, South Yarra',
     meta: [
-      { label: 'Agent', value: 'Ranko Cvjeticanin, Stonnington' },
+      { label: 'Agent', value: 'Priya Nair, Prahran and South Yarra' },
       { label: 'Listing', value: 'Highlight tier' },
       { label: 'Listed', value: '21 April 2026' },
       { label: 'On site', value: '96 days' },
@@ -1890,8 +1890,9 @@ export const fixture: FixtureData = {
       { id: 'actions', label: 'Actions' },
       { id: 'connections', label: 'Data connections' },
     ],
-    agentLine: 'Ranko Cvjeticanin',
     officeLine: 'Marshall White Stonnington',
+    syncLine: 'Five sources synced 6:04am',
+    syncedLabel: 'Live',
   },
 
   portfolio: {

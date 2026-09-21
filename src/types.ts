@@ -188,6 +188,25 @@ export interface TaskEvidence {
 
 export type TaskUrgency = 'now' | 'today' | 'week';
 
+// What a task costs the vendor. The office sorts the queue by this before it
+// sorts by anything else: a no-budget item can go straight to the agent,
+// anything with spend needs the vendor conversation first. The bands match the
+// tiers on each campaign's recommendations, so both screens speak one language.
+export type BudgetBand = 'none' | 'mid' | 'high';
+
+export interface TaskBudget {
+  band: BudgetBand;
+  cost: string; // 'No cost', 'Estimated $1,880'
+  note: string; // what the money buys, or why none is needed
+}
+
+// One named person behind a task, carried so the agent's message can list them
+// instead of pointing at a system to go and look them up in.
+export interface TaskContact {
+  name: string;
+  line: string; // the one fact that tells the agent why they are calling
+}
+
 export interface WorkTask {
   id: string;
   campaignId: string;
@@ -195,21 +214,56 @@ export interface WorkTask {
   assigneeId: string;
   urgency: TaskUrgency;
   urgencyLabel: string; // 'Do now', 'Today', 'This week'
+  budget: TaskBudget;
   action: string;
   detail: string;
   evidence: TaskEvidence[];
+  contacts?: TaskContact[];
+  contactsSource?: string; // 'Box+Dice CRM', so the list can carry its origin
   rule: string; // the trigger, written as a plain sentence
   raised: string; // 'Raised by the 6:00am read'
+}
+
+export interface BudgetBandMeta {
+  id: BudgetBand;
+  label: string; // 'No additional budget', '$1,000-$2,000', '$3,000+'
+  short: string; // the filter chip: 'No budget', '$1-2k', '$3k+'
+  note: string; // the sign-off consequence, shown under the group heading
 }
 
 export interface WorklistBlock {
   title: string;
   subtitle: string;
   allLabel: string; // filter label for the whole team
+  allCampaignsLabel: string; // filter label for every campaign
+  teamFilterLabel: string;
+  campaignFilterLabel: string;
+  budgetFilterLabel: string;
+  budgetBands: BudgetBandMeta[];
   raisedNote: string;
   tasks: WorkTask[];
   caption: string;
   notifyPrefix: string; // 'Email this to'
+  emptyLabel: string; // shown when a filter combination has no work in it
+  campaignRailTitle: string;
+  sentLog: SentLogCopy;
+}
+
+// The record of what actually went out. It matters twice: the office can see
+// what it has already sent, and if the send step is ever handed to the model
+// outright, this is the surface that shows what it did.
+export interface SentLogCopy {
+  title: string;
+  subtitle: string;
+  empty: string;
+}
+
+export interface SentRecord {
+  taskId: string;
+  action: string;
+  memberName: string;
+  campaignAddress: string;
+  at: string; // '9:47 pm'
 }
 
 export interface SourceRow {
@@ -250,8 +304,11 @@ export interface AppChrome {
   portfolioLabel: string;
   backLabel: string;
   navSections: NavSection[];
-  agentLine: string;
   officeLine: string;
+  // The header carried the signed-in agent's name, which was wrong on every
+  // campaign but their own. The sync state is true on all of them.
+  syncLine: string;
+  syncedLabel: string;
 }
 
 export interface PortfolioRow {

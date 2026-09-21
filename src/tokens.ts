@@ -22,6 +22,9 @@ export const C = {
 
   // Signal. Data state only, never decoration.
   good: '#1F6F43',
+  // The live pulse sits on the navy header, where C.good is unreadable.
+  // Signal, not decoration: it reports whether the feed is actually live.
+  goodOnInk: '#6FCF97',
   warn: '#B07A1E',
   bad: '#A32B2B',
   neutral: '#8A939C',

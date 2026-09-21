@@ -1,4 +1,4 @@
-// Vercel serverless function: emails a task from the Today queue to the
+// Vercel serverless function: sends a task from the Today queue to the
 // assigned agent. Delivery uses the demo owner's Gmail over SMTP.
 //
 // Environment variables (Vercel project settings):
@@ -9,12 +9,28 @@
 //
 // With none of these set the endpoint answers { ok: true, simulated: true }
 // and the UI reports that delivery is not set up.
+//
+// What the agent gets is deliberately not what the office sees. The office
+// screen carries the evidence and the rule; the agent gets two lines and the
+// actual list of people, because an agent who has to open a CRM to find the
+// names will not make the calls.
 
 import nodemailer from 'nodemailer';
 
 interface Evidence {
   system: string;
   fact: string;
+}
+
+interface Contact {
+  name: string;
+  line: string;
+}
+
+interface Budget {
+  band: 'none' | 'mid' | 'high';
+  cost: string;
+  note: string;
 }
 
 interface NotifyPayload {
@@ -24,6 +40,10 @@ interface NotifyPayload {
   campaign: string;
   evidence: Evidence[];
   rule: string;
+  budget?: Budget;
+  contacts?: Contact[];
+  contactsSource?: string;
+  urgencyLabel?: string;
 }
 
 function isPayload(body: unknown): body is NotifyPayload {
@@ -38,46 +58,113 @@ function isPayload(body: unknown): body is NotifyPayload {
   );
 }
 
-function textBody(p: NotifyPayload): string {
-  const evidence = p.evidence
-    .map((e) => `- ${e.system}: ${e.fact}`)
-    .join('\n');
-  return [
-    p.campaign,
-    '',
-    p.action,
-    p.detail,
-    '',
-    'Why this fired:',
-    evidence,
-    '',
-    p.rule,
-    '',
-    'Marshall White campaign intelligence',
-  ].join('\n');
+const firstName = (full: string) => full.split(' ')[0];
+
+// Anything with a dollar figure on it cannot be actioned without the vendor,
+// so the agent is told that in the same breath as the task.
+function budgetLine(p: NotifyPayload): string | null {
+  if (!p.budget || p.budget.band === 'none') return null;
+  return `${p.budget.cost}. Needs vendor sign-off before you book it.`;
 }
 
-function htmlBody(p: NotifyPayload): string {
+export function subject(p: NotifyPayload): string {
+  const urgency = p.urgencyLabel ? `${p.urgencyLabel}: ` : '';
+  return `${urgency}${p.action} — ${p.campaign.split(',')[0]}`;
+}
+
+export function textBody(p: NotifyPayload): string {
+  const out: string[] = [`${firstName(p.assignee)} — ${p.action}.`, p.detail, ''];
+
+  const money = budgetLine(p);
+  if (money) out.push(money, '');
+
+  if (p.contacts?.length) {
+    out.push(
+      `${p.contacts.length} ${p.contacts.length === 1 ? 'person' : 'people'}${
+        p.contactsSource ? `, from ${p.contactsSource}` : ''
+      }:`,
+      '',
+    );
+    p.contacts.forEach((c, i) => out.push(`${i + 1}. ${c.name} — ${c.line}`));
+    out.push('');
+  }
+
+  out.push(p.campaign, `${p.rule}`, 'Marshall White campaign intelligence');
+  return out.join('\n');
+}
+
+export function htmlBody(p: NotifyPayload): string {
   const esc = (s: string) =>
     s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const evidence = p.evidence
-    .map(
-      (e) =>
-        `<li style="margin:2px 0"><strong>${esc(e.system)}:</strong> ${esc(e.fact)}</li>`,
-    )
-    .join('');
+
+  const money = budgetLine(p);
+
+  // The list is stamped with the system it came out of, so the agent can trust
+  // it without going to look.
+  const contacts = p.contacts?.length
+    ? `
+    <div style="border:1px solid #E3E6E9;border-radius:4px;overflow:hidden;margin:0 0 20px">
+      <div style="background:#C8102E;color:#fff;font-size:12px;font-weight:600;padding:7px 14px">
+        ${esc(p.contactsSource || 'CRM')}
+      </div>
+      <table style="width:100%;border-collapse:collapse">
+        ${p.contacts
+          .map(
+            (c, i) => `
+        <tr style="${i > 0 ? 'border-top:1px solid #EDEFF1' : ''}">
+          <td style="padding:9px 14px;font-size:14px;font-weight:600;color:#0B1B2B;white-space:nowrap;vertical-align:top">${esc(
+            c.name,
+          )}</td>
+          <td style="padding:9px 14px 9px 0;font-size:13px;color:#5A6672;vertical-align:top">${esc(
+            c.line,
+          )}</td>
+        </tr>`,
+          )
+          .join('')}
+      </table>
+    </div>`
+    : '';
+
   return `
-  <div style="font-family:Inter,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#0B1B2B;max-width:560px">
-    <p style="font-size:13px;color:#5A6672;margin:0 0 4px">${esc(p.campaign)}</p>
-    <p style="font-size:17px;font-weight:600;margin:0">${esc(p.action)}</p>
-    <p style="font-size:14px;color:#5A6672;margin:4px 0 16px">${esc(p.detail)}</p>
-    <p style="font-size:13px;font-weight:600;margin:0 0 4px">Why this fired</p>
-    <ul style="font-size:13px;color:#5A6672;margin:0;padding-left:18px">${evidence}</ul>
-    <p style="font-size:12px;color:#8A939C;margin:16px 0 0">${esc(p.rule)}</p>
-    <p style="font-size:12px;color:#8A939C;margin:16px 0 0;border-top:1px solid #E3E6E9;padding-top:8px">
-      Marshall White campaign intelligence
+  <div style="font-family:Inter,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#0B1B2B;max-width:580px">
+    ${
+      p.urgencyLabel
+        ? `<p style="font-size:13px;font-weight:600;color:#A32B2B;margin:0 0 6px">${esc(
+            p.urgencyLabel,
+          )}</p>`
+        : ''
+    }
+    <p style="font-size:20px;font-weight:600;line-height:1.3;margin:0 0 6px">${esc(
+      firstName(p.assignee),
+    )} — ${esc(p.action)}.</p>
+    <p style="font-size:15px;color:#5A6672;margin:0 0 ${money ? '12' : '20'}px">${esc(
+      p.detail,
+    )}</p>
+    ${
+      money
+        ? `<p style="font-size:14px;font-weight:600;color:#B07A1E;margin:0 0 20px">${esc(
+            money,
+          )}</p>`
+        : ''
+    }
+    ${contacts}
+    <p style="font-size:13px;color:#8A939C;margin:0;border-top:1px solid #E3E6E9;padding-top:10px">
+      ${esc(p.campaign)}<br />
+      <span style="font-size:12px">${esc(p.rule)}</span>
     </p>
   </div>`;
+}
+
+export function slackBody(p: NotifyPayload): string {
+  const out = [`*${p.urgencyLabel ? `${p.urgencyLabel}: ` : ''}${firstName(p.assignee)} — ${p.action}.*`, p.detail];
+  const money = budgetLine(p);
+  if (money) out.push(`:warning: ${money}`);
+  if (p.contacts?.length) {
+    out.push('', `*${p.contacts.length} from ${p.contactsSource || 'CRM'}:*`);
+    p.contacts.forEach((c) => out.push(`• *${c.name}* — ${c.line}`));
+  }
+  out.push('', `_${p.campaign}_`);
+  return out.join('\n');
 }
 
 export default async function handler(req: any, res: any) {
@@ -112,7 +199,7 @@ export default async function handler(req: any, res: any) {
       await transporter.sendMail({
         from: `Marshall White campaign intelligence <${user}>`,
         to: process.env.NOTIFY_TO || user,
-        subject: `Task for ${body.assignee}: ${body.action}`,
+        subject: subject(body),
         text: textBody(body),
         html: htmlBody(body),
       });
@@ -120,15 +207,10 @@ export default async function handler(req: any, res: any) {
     }
 
     if (slack) {
-      const evidence = body.evidence
-        .map((e: Evidence) => `• ${e.system}: ${e.fact}`)
-        .join('\n');
       const slackRes = await fetch(slack, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: `*Task for ${body.assignee}: ${body.action}*\n${body.campaign}\n${evidence}\n_${body.rule}_`,
-        }),
+        body: JSON.stringify({ text: slackBody(body) }),
       });
       if (slackRes.ok) channels.push('slack');
     }

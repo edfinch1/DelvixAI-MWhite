@@ -115,9 +115,27 @@ export default function Sidebar({
           borderTop: `1px solid ${C.inkSoft}`,
         }}
       >
-        <div style={{ ...T.body, fontWeight: 500, color: C.onInk }}>{chrome.agentLine}</div>
-        <div style={{ ...T.caption, color: C.onInkMuted, marginTop: 2 }}>
-          {chrome.officeLine}
+        <div style={{ ...T.body, fontWeight: 500, color: C.onInk }}>{chrome.officeLine}</div>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 5,
+            ...T.caption,
+            color: C.onInkMuted,
+            marginTop: 2,
+          }}
+        >
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: C.goodOnInk,
+              display: 'inline-block',
+            }}
+          />
+          {chrome.syncLine}
         </div>
         <div style={{ ...T.caption, color: C.onInkMuted, marginTop: S.base }}>{footer}</div>
       </div>

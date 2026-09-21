@@ -58,6 +58,34 @@ function MobileTabs({
   );
 }
 
+function SyncBadge({ chrome }: { chrome: AppChrome }) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: S.s }}>
+      <span
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 5,
+          ...T.label,
+          color: C.good,
+        }}
+      >
+        <span
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: '50%',
+            background: C.good,
+            display: 'inline-block',
+          }}
+        />
+        {chrome.syncedLabel}
+      </span>
+      <span style={{ ...T.caption, color: C.textFaint }}>{chrome.syncLine}</span>
+    </span>
+  );
+}
+
 export default function TopBar({
   chrome,
   route,
@@ -144,8 +172,8 @@ export default function TopBar({
             <span style={{ ...T.body, fontWeight: 550, color: C.text }}>
               {chrome.portfolioLabel}
             </span>
-            <span style={{ ...T.caption, color: C.textFaint, marginLeft: 'auto' }}>
-              {chrome.agentLine} · {chrome.officeLine}
+            <span style={{ marginLeft: 'auto' }}>
+              <SyncBadge chrome={chrome} />
             </span>
           </>
         )}
