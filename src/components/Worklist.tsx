@@ -8,7 +8,7 @@ import type {
   WorkTask,
   Tone,
 } from '../types';
-import { C, S, T, RADIUS, hairline } from '../tokens';
+import { C, S, T, RADIUS, RAIL_WIDTH, RAIL_GUTTER, hairline } from '../tokens';
 import { useViewport } from '../hooks/useViewport';
 
 interface Props {
@@ -379,27 +379,27 @@ function FilterRow({
 // queue reads as "this campaign's work", and the filter chrome above the list
 // gets shorter. Below 1024px there is no room for a rail, so it collapses back
 // into the chip row.
-function CampaignRail({
+
+// The left column is a filter panel, not just a campaign list. It holds all
+// three groups, which is what makes it tall enough to sit beside the queue
+// instead of leaving a dead column under it, and it takes the two chip rows
+// off the top of the list. Ed asked for the campaigns on the left and for the
+// filter chrome above the queue to take less room; this is both.
+function FilterGroup({
   title,
   options,
   value,
   onChange,
+  last,
 }: {
   title: string;
   options: { id: string; label: string; count: number }[];
   value: string;
   onChange: (id: string) => void;
+  last?: boolean;
 }) {
   return (
-    <aside
-      style={{
-        width: 208,
-        flexShrink: 0,
-        position: 'sticky',
-        top: S.l,
-        alignSelf: 'flex-start',
-      }}
-    >
+    <div style={{ marginBottom: last ? 0 : S.l }}>
       <div
         style={{
           ...T.label,
@@ -428,7 +428,7 @@ function CampaignRail({
                 gap: S.s,
                 width: '100%',
                 textAlign: 'left',
-                padding: `${S.s}px ${S.s}px`,
+                padding: `${S.s - 1}px ${S.s}px`,
                 border: 'none',
                 borderLeft: active ? `2px solid ${C.ink}` : '2px solid transparent',
                 background: active ? C.paperAlt : 'transparent',
@@ -444,13 +444,10 @@ function CampaignRail({
           );
         })}
       </div>
-    </aside>
+    </div>
   );
 }
 
-// Benji asked for this one directly: a record of what has gone out. It is the
-// audit surface if the office review step is ever dropped and the send happens
-// on its own.
 function SentLog({ copy, records }: { copy: WorklistBlock['sentLog']; records: SentRecord[] }) {
   return (
     <section style={{ marginTop: S.xl }}>
@@ -517,6 +514,7 @@ function SentLog({ copy, records }: { copy: WorklistBlock['sentLog']; records: S
   );
 }
 
+
 export default function Worklist({ data, team, onOpenCampaign }: Props) {
   const { isMobile, isNarrow } = useViewport();
   const [agent, setAgent] = useState('all');
@@ -536,7 +534,6 @@ export default function Worklist({ data, team, onOpenCampaign }: Props) {
 
   const members = useMemo(() => new Map(team.map((m) => [m.id, m])), [team]);
 
-  // Every campaign that has work in it today, in the order it first appears.
   const campaigns = useMemo(() => {
     const seen = new Map<string, string>();
     for (const t of data.tasks) {
@@ -546,7 +543,7 @@ export default function Worklist({ data, team, onOpenCampaign }: Props) {
   }, [data.tasks]);
 
   // Each filter counts against the other two, so a count is always the number
-  // of rows that chip would actually show.
+  // of rows that option would actually show.
   const matches = (t: WorkTask, skip: 'agent' | 'campaign' | 'budget' | null) =>
     (skip === 'agent' || agent === 'all' || t.assigneeId === agent) &&
     (skip === 'campaign' || campaign === 'all' || t.campaignId === campaign) &&
@@ -577,11 +574,7 @@ export default function Worklist({ data, team, onOpenCampaign }: Props) {
   ];
 
   const budgetOptions = [
-    {
-      id: 'all',
-      label: 'All',
-      count: data.tasks.filter((t) => matches(t, 'budget')).length,
-    },
+    { id: 'all', label: 'All', count: data.tasks.filter((t) => matches(t, 'budget')).length },
     ...data.budgetBands.map((b) => ({
       id: b.id,
       label: b.short,
@@ -592,38 +585,36 @@ export default function Worklist({ data, team, onOpenCampaign }: Props) {
   // Budget is the client's primary cut, so the queue is always grouped by it:
   // the filter narrows which bands are on screen, never how they are read.
   const bands = data.budgetBands.filter((b) => budget === 'all' || b.id === budget);
-
   const grouped = bands.map((band) => ({
     band,
     tasks: visible.filter((t) => t.budget.band === (band.id as BudgetBand)),
   }));
-
   const anyVisible = grouped.some((g) => g.tasks.length > 0);
 
   const queue = (
     <div style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ marginBottom: S.base }}>
-        <FilterRow
-          label={data.teamFilterLabel}
-          options={agentOptions}
-          value={agent}
-          onChange={setAgent}
-        />
-        {isNarrow && (
+      {isNarrow && (
+        <div style={{ marginBottom: S.base }}>
           <FilterRow
             label={data.campaignFilterLabel}
             options={campaignOptions}
             value={campaign}
             onChange={setCampaign}
           />
-        )}
-        <FilterRow
-          label={data.budgetFilterLabel}
-          options={budgetOptions}
-          value={budget}
-          onChange={setBudget}
-        />
-      </div>
+          <FilterRow
+            label={data.teamFilterLabel}
+            options={agentOptions}
+            value={agent}
+            onChange={setAgent}
+          />
+          <FilterRow
+            label={data.budgetFilterLabel}
+            options={budgetOptions}
+            value={budget}
+            onChange={setBudget}
+          />
+        </div>
+      )}
 
       {!anyVisible && (
         <div
@@ -639,10 +630,10 @@ export default function Worklist({ data, team, onOpenCampaign }: Props) {
         </div>
       )}
 
-      {grouped.map(({ band, tasks }) => {
+      {grouped.map(({ band, tasks }, gi) => {
         if (!tasks.length) return null;
         return (
-          <section key={band.id} style={{ marginBottom: S.xl }}>
+          <section key={band.id} style={{ marginBottom: S.xl, marginTop: gi === 0 ? 0 : undefined }}>
             <div
               style={{
                 display: 'flex',
@@ -654,19 +645,10 @@ export default function Worklist({ data, team, onOpenCampaign }: Props) {
                 borderBottom: `1px solid ${C.lineStrong}`,
               }}
             >
-              <h2
-                style={{
-                  fontSize: 17,
-                  fontWeight: 600,
-                  letterSpacing: '-0.01em',
-                  color: C.text,
-                }}
-              >
+              <h2 style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em', color: C.text }}>
                 {band.label}
               </h2>
-              <span
-                style={{ ...T.label, color: C.textFaint, fontVariantNumeric: 'tabular-nums' }}
-              >
+              <span style={{ ...T.label, color: C.textFaint, fontVariantNumeric: 'tabular-nums' }}>
                 {tasks.length} {tasks.length === 1 ? 'item' : 'items'}
               </span>
             </div>
@@ -705,13 +687,36 @@ export default function Worklist({ data, team, onOpenCampaign }: Props) {
   if (isNarrow) return queue;
 
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: S.xl }}>
-      <CampaignRail
-        title={data.campaignRailTitle}
-        options={campaignOptions}
-        value={campaign}
-        onChange={setCampaign}
-      />
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: RAIL_GUTTER }}>
+      <aside
+        style={{
+          width: RAIL_WIDTH,
+          flexShrink: 0,
+          position: 'sticky',
+          top: S.l,
+          alignSelf: 'flex-start',
+        }}
+      >
+        <FilterGroup
+          title={data.campaignFilterLabel}
+          options={campaignOptions}
+          value={campaign}
+          onChange={setCampaign}
+        />
+        <FilterGroup
+          title={data.teamFilterLabel}
+          options={agentOptions}
+          value={agent}
+          onChange={setAgent}
+        />
+        <FilterGroup
+          title={data.budgetFilterLabel}
+          options={budgetOptions}
+          value={budget}
+          onChange={setBudget}
+          last
+        />
+      </aside>
       {queue}
     </div>
   );

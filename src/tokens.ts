@@ -49,6 +49,14 @@ export const S = {
 } as const;
 
 export const MAX_WIDTH = 1120;
+
+// The Today view carries a filter rail beside the queue. The rail is additive:
+// the shell widens by the rail and its gutter so the queue keeps the reading
+// width the design calls for, rather than the rail eating into it and leaving
+// the outer margins holding the space instead.
+export const RAIL_WIDTH = 208;
+export const RAIL_GUTTER = 40;
+export const SHELL_WIDTH = MAX_WIDTH + RAIL_WIDTH + RAIL_GUTTER;
 export const RADIUS = 4; // maximum
 
 export const T: Record<string, CSSProperties> = {

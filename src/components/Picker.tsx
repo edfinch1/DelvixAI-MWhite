@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { AppChrome, PortfolioBlock, TeamMember, WorklistBlock } from '../types';
-import { C, S, T, MAX_WIDTH } from '../tokens';
+import { C, S, T, MAX_WIDTH, SHELL_WIDTH } from '../tokens';
 import { useViewport } from '../hooks/useViewport';
 import Portfolio from './Portfolio';
 import Worklist from './Worklist';
@@ -15,9 +15,12 @@ interface Props {
 }
 
 export default function Picker({ chrome, portfolio, worklist, team, footer, onOpen }: Props) {
-  const { isMobile } = useViewport();
+  const { isMobile, isNarrow } = useViewport();
   const [view, setView] = useState<'today' | 'campaigns'>('today');
   const gutter = isMobile ? S.l : S.xl;
+  // Today carries the filter rail, so its shell is wider by exactly the rail.
+  // Every band in this view uses the same width, so nothing misaligns.
+  const shell = view === 'today' && !isNarrow ? SHELL_WIDTH : MAX_WIDTH;
 
   const tab = (id: 'today' | 'campaigns', label: string) => {
     const active = view === id;
@@ -46,7 +49,7 @@ export default function Picker({ chrome, portfolio, worklist, team, footer, onOp
       <header style={{ background: C.ink, color: C.onInk }}>
         <div
           style={{
-            maxWidth: MAX_WIDTH,
+            maxWidth: shell,
             margin: '0 auto',
             padding: `${S.base + S.xs}px ${gutter}px`,
             display: 'flex',
@@ -83,7 +86,7 @@ export default function Picker({ chrome, portfolio, worklist, team, footer, onOp
       <div style={{ borderBottom: `1px solid ${C.line}` }}>
         <nav
           style={{
-            maxWidth: MAX_WIDTH,
+            maxWidth: shell,
             margin: '0 auto',
             padding: `0 ${gutter}px`,
             display: 'flex',
@@ -97,7 +100,7 @@ export default function Picker({ chrome, portfolio, worklist, team, footer, onOp
 
       <main
         style={{
-          maxWidth: MAX_WIDTH,
+          maxWidth: shell,
           margin: '0 auto',
           padding: `${isMobile ? S.l : S.xl}px ${gutter}px ${S.xxl}px`,
         }}
@@ -122,7 +125,7 @@ export default function Picker({ chrome, portfolio, worklist, team, footer, onOp
 
       <footer
         style={{
-          maxWidth: MAX_WIDTH,
+          maxWidth: shell,
           margin: '0 auto',
           padding: `${S.l}px ${gutter}px ${S.xl}px`,
           borderTop: `1px solid ${C.line}`,
