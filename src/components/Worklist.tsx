@@ -49,6 +49,31 @@ function shortAddress(address: string): string {
   return /\d/.test(first) && rest.length ? rest.join(' ') : street;
 }
 
+// Most evidence lines open on their figure — "8 enquiries", "0 inspection
+// actions", "29 of 47 logged feedback notes". Those figures are the argument;
+// the rest of the line is context for it. Lines that do not open on a number
+// are left exactly as they are rather than having emphasis invented for them.
+const LEADING_FIGURE = /^(\d[\d,]*(?:\s+of\s+\d[\d,]*)?)\s+([\s\S]*)$/;
+
+function Fact({ text }: { text: string }) {
+  const m = text.match(LEADING_FIGURE);
+  if (!m) return <span style={{ ...T.caption, color: C.text }}>{text}</span>;
+  return (
+    <span style={{ ...T.caption, color: C.text }}>
+      <span
+        style={{
+          fontWeight: 600,
+          fontVariantNumeric: 'tabular-nums',
+          letterSpacing: '-0.01em',
+        }}
+      >
+        {m[1]}
+      </span>{' '}
+      {m[2]}
+    </span>
+  );
+}
+
 type SendState = 'idle' | 'sending' | 'sent' | 'unavailable';
 
 function NotifyButton({
@@ -281,7 +306,16 @@ function TaskRow({
           </button>
         </div>
 
-        <div style={{ ...T.body, fontWeight: 500, color: C.text, marginTop: S.xs + 2 }}>
+        <div
+          style={{
+            fontSize: 17,
+            fontWeight: 550,
+            letterSpacing: '-0.01em',
+            lineHeight: 1.35,
+            color: C.text,
+            marginTop: S.xs + 2,
+          }}
+        >
           {task.action}
         </div>
         <div style={{ ...T.caption, color: C.textMuted, marginTop: 2 }}>{task.detail}</div>
@@ -308,7 +342,7 @@ function TaskRow({
               >
                 {e.system}
               </span>
-              <span style={{ ...T.caption, color: C.text }}>{e.fact}</span>
+              <Fact text={e.fact} />
             </div>
           ))}
           <div style={{ ...T.caption, color: C.textFaint, marginTop: S.s }}>{task.rule}</div>
@@ -504,7 +538,7 @@ function SentLog({ copy, records }: { copy: WorklistBlock['sentLog']; records: S
           borderBottom: `1px solid ${C.lineStrong}`,
         }}
       >
-        <h2 style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em', color: C.text }}>
+        <h2 style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.015em', color: C.text }}>
           {copy.title}
         </h2>
         <span style={{ ...T.label, color: C.textFaint, fontVariantNumeric: 'tabular-nums' }}>
@@ -687,7 +721,7 @@ export default function Worklist({ data, team, campaignRecords, onOpenCampaign }
                 borderBottom: `1px solid ${C.lineStrong}`,
               }}
             >
-              <h2 style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em', color: C.text }}>
+              <h2 style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.015em', color: C.text }}>
                 {band.label}
               </h2>
               <span style={{ ...T.label, color: C.textFaint, fontVariantNumeric: 'tabular-nums' }}>
