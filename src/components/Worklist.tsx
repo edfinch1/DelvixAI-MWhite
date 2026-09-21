@@ -50,29 +50,17 @@ function shortAddress(address: string): string {
 }
 
 // Most evidence lines open on their figure — "8 enquiries", "0 inspection
-// actions", "29 of 47 logged feedback notes". Those figures are the argument;
-// the rest of the line is context for it. Lines that do not open on a number
-// are left exactly as they are rather than having emphasis invented for them.
+// actions", "29 of 47 logged feedback notes". The figure is the argument and
+// the rest of the line is context for it, so the figure gets its own column
+// and the numbers stack into something you can read down. Lines that do not
+// open on a number simply leave the column empty rather than having a figure
+// invented for them.
 const LEADING_FIGURE = /^(\d[\d,]*(?:\s+of\s+\d[\d,]*)?)\s+([\s\S]*)$/;
+const FIGURE_COL = 76;
 
-function Fact({ text }: { text: string }) {
+function splitFact(text: string): [string | null, string] {
   const m = text.match(LEADING_FIGURE);
-  if (!m) return <span style={{ ...T.caption, color: C.text }}>{text}</span>;
-  return (
-    <span style={{ ...T.caption, color: C.text }}>
-      <span
-        style={{
-          fontSize: 15,
-          fontWeight: 600,
-          fontVariantNumeric: 'tabular-nums',
-          letterSpacing: '-0.015em',
-        }}
-      >
-        {m[1]}
-      </span>{' '}
-      {m[2]}
-    </span>
-  );
+  return m ? [m[1], m[2]] : [null, text];
 }
 
 type SendState = 'idle' | 'sending' | 'sent' | 'unavailable';
@@ -328,8 +316,9 @@ function TaskRow({
               style={{
                 display: 'flex',
                 flexDirection: isMobile ? 'column' : 'row',
+                alignItems: isMobile ? 'flex-start' : 'baseline',
                 gap: isMobile ? 0 : S.m,
-                marginTop: isMobile ? S.s : 3,
+                marginTop: isMobile ? S.s : S.xs + 1,
               }}
             >
               <span
@@ -338,12 +327,45 @@ function TaskRow({
                   color: C.textFaint,
                   width: isMobile ? undefined : 108,
                   flexShrink: 0,
-                  paddingTop: isMobile ? 0 : 1,
                 }}
               >
                 {e.system}
               </span>
-              <Fact text={e.fact} />
+              {(() => {
+                const [figure, rest] = splitFact(e.fact);
+                if (isMobile) {
+                  return (
+                    <span style={{ ...T.caption, color: C.text }}>
+                      {figure && (
+                        <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                          {figure}{' '}
+                        </span>
+                      )}
+                      {rest}
+                    </span>
+                  );
+                }
+                return (
+                  <>
+                    <span
+                      style={{
+                        width: FIGURE_COL,
+                        flexShrink: 0,
+                        textAlign: 'right',
+                        fontSize: 20,
+                        fontWeight: 600,
+                        letterSpacing: '-0.02em',
+                        fontVariantNumeric: 'tabular-nums',
+                        color: C.text,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {figure ?? ''}
+                    </span>
+                    <span style={{ ...T.caption, color: C.text }}>{rest}</span>
+                  </>
+                );
+              })()}
             </div>
           ))}
           <div style={{ ...T.caption, color: C.textFaint, marginTop: S.s }}>{task.rule}</div>
