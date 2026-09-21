@@ -60,6 +60,31 @@ function isPayload(body: unknown): body is NotifyPayload {
 
 const firstName = (full: string) => full.split(' ')[0];
 
+// Where a task came from, stamped on every message so the agent can trust it
+// without opening anything.
+//
+// Colours were sampled from the live sites, not recalled: Box and Dice from
+// mrisoftware.com/au/products/box-and-dice (MRI acquired Box+Dice, and the
+// product is deep teal, not the red this file used to carry), REA from
+// realestate.com.au. Sources we could not verify fall back to Marshall White
+// navy rather than a guessed brand colour — an invented colour on someone
+// else's logo is worse than no colour at all.
+const MW_NAVY = '#0B1B2B';
+
+const SOURCES: Record<string, { label: string; colour: string }> = {
+  'Box+Dice CRM': { label: 'MRI Box and Dice', colour: '#044D66' }, // verified
+  'REA Ignite': { label: 'REA Ignite', colour: '#E4002B' }, // verified
+  'Domain Skylight': { label: 'Domain Skylight', colour: MW_NAVY }, // unverified
+  'Red HQ': { label: 'Red HQ', colour: MW_NAVY }, // unverified
+  'Google Analytics': { label: 'Google Analytics', colour: MW_NAVY }, // unverified
+  'Marshall White historical': { label: 'Marshall White historical', colour: MW_NAVY },
+};
+
+const sourceOf = (p: NotifyPayload) => {
+  const key = p.contactsSource || p.evidence[0]?.system || '';
+  return SOURCES[key] || { label: key || 'Marshall White', colour: MW_NAVY };
+};
+
 // Anything with a dollar figure on it cannot be actioned without the vendor,
 // so the agent is told that in the same breath as the task.
 function budgetLine(p: NotifyPayload): string | null {
@@ -78,15 +103,16 @@ export function textBody(p: NotifyPayload): string {
   const money = budgetLine(p);
   if (money) out.push(money, '');
 
+  const src = sourceOf(p);
   if (p.contacts?.length) {
     out.push(
-      `${p.contacts.length} ${p.contacts.length === 1 ? 'person' : 'people'}${
-        p.contactsSource ? `, from ${p.contactsSource}` : ''
-      }:`,
+      `${p.contacts.length} ${p.contacts.length === 1 ? 'person' : 'people'}, from ${src.label}:`,
       '',
     );
     p.contacts.forEach((c, i) => out.push(`${i + 1}. ${c.name} — ${c.line}`));
     out.push('');
+  } else {
+    out.push(`Raised from your ${src.label} data this morning.`, '');
   }
 
   out.push(p.campaign, `${p.rule}`, 'Marshall White campaign intelligence');
@@ -99,13 +125,16 @@ export function htmlBody(p: NotifyPayload): string {
 
   const money = budgetLine(p);
 
-  // The list is stamped with the system it came out of, so the agent can trust
-  // it without going to look.
+  const src = sourceOf(p);
+
+  // The source bar is on every message. Where there are names it heads the
+  // table; where there are none it stands alone, so a task with no contact
+  // list still looks finished.
   const contacts = p.contacts?.length
     ? `
     <div style="border:1px solid #E3E6E9;border-radius:4px;overflow:hidden;margin:0 0 20px">
-      <div style="background:#C8102E;color:#fff;font-size:12px;font-weight:600;padding:7px 14px">
-        ${esc(p.contactsSource || 'CRM')}
+      <div style="background:${src.colour};color:#fff;font-size:12px;font-weight:600;padding:7px 14px">
+        ${esc(src.label)}
       </div>
       <table style="width:100%;border-collapse:collapse">
         ${p.contacts
@@ -123,7 +152,15 @@ export function htmlBody(p: NotifyPayload): string {
           .join('')}
       </table>
     </div>`
-    : '';
+    : `
+    <div style="border:1px solid #E3E6E9;border-radius:4px;overflow:hidden;margin:0 0 20px">
+      <div style="background:${src.colour};color:#fff;font-size:12px;font-weight:600;padding:7px 14px">
+        ${esc(src.label)}
+      </div>
+      <p style="font-size:13px;color:#5A6672;margin:0;padding:10px 14px">
+        Raised from your ${esc(src.label)} data this morning.
+      </p>
+    </div>`;
 
   return `
   <div style="font-family:Inter,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#0B1B2B;max-width:580px">
@@ -159,9 +196,12 @@ export function slackBody(p: NotifyPayload): string {
   const out = [`*${p.urgencyLabel ? `${p.urgencyLabel}: ` : ''}${firstName(p.assignee)} — ${p.action}.*`, p.detail];
   const money = budgetLine(p);
   if (money) out.push(`:warning: ${money}`);
+  const src = sourceOf(p);
   if (p.contacts?.length) {
-    out.push('', `*${p.contacts.length} from ${p.contactsSource || 'CRM'}:*`);
+    out.push('', `*${p.contacts.length} from ${src.label}:*`);
     p.contacts.forEach((c) => out.push(`• *${c.name}* — ${c.line}`));
+  } else {
+    out.push('', `_Raised from your ${src.label} data this morning._`);
   }
   out.push('', `_${p.campaign}_`);
   return out.join('\n');
