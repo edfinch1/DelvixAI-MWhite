@@ -63,16 +63,16 @@ const firstName = (full: string) => full.split(' ')[0];
 // Where a task came from, stamped on every message so the agent can trust it
 // without opening anything.
 //
-// Colours were sampled from the live sites, not recalled: Box and Dice from
-// mrisoftware.com/au/products/box-and-dice (MRI acquired Box+Dice, and the
-// product is deep teal, not the red this file used to carry), REA from
-// realestate.com.au. Sources we could not verify fall back to Marshall White
+// Colours were sampled from the live sites, not recalled: Box+Dice from
+// mrisoftware.com/au/products/box-and-dice (MRI now owns it, and the product
+// is deep teal, not the red this file used to carry — we keep calling it
+// Box+Dice, which is what the agents call it), REA from realestate.com.au. Sources we could not verify fall back to Marshall White
 // navy rather than a guessed brand colour — an invented colour on someone
 // else's logo is worse than no colour at all.
 const MW_NAVY = '#0B1B2B';
 
 const SOURCES: Record<string, { label: string; colour: string }> = {
-  'Box+Dice CRM': { label: 'MRI Box and Dice', colour: '#044D66' }, // verified
+  'Box+Dice CRM': { label: 'Box+Dice', colour: '#044D66' }, // verified
   'REA Ignite': { label: 'REA Ignite', colour: '#E4002B' }, // verified
   'Domain Skylight': { label: 'Domain Skylight', colour: MW_NAVY }, // unverified
   'Red HQ': { label: 'Red HQ', colour: MW_NAVY }, // unverified
